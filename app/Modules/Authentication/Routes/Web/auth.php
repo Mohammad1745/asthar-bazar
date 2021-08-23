@@ -4,6 +4,7 @@ Route::get('/auth', "AuthController@auth")->name('auth');
 
 Route::get('sign-up', "AuthController@signUp")->name('signUp');
 Route::post('sign-up', "AuthController@signUpProcess")->name('signUpProcess');
+Route::get('email-verification-code', "AuthController@emailVerificationCode")->name('emailVerificationCode');
 Route::get('verify-email', "AuthController@verifyEmail")->name('verifyEmail');
 Route::post('verify-email', "AuthController@verifyEmailProcess")->name('verifyEmailProcess');
 Route::get('sign-in', "AuthController@signIn")->name('signIn');

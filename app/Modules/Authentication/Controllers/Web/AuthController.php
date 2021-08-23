@@ -17,21 +17,21 @@ use Illuminate\View\View;
 
 class AuthController extends Controller
 {
-    private $webAuthService;
+    private $service;
 
     /**
      * AuthController constructor.
-     * @param WebAuthService $webAuthService
+     * @param WebAuthService $service
      */
-    public function __construct(WebAuthService $webAuthService)
+    public function __construct(WebAuthService $service)
     {
-        $this->webAuthService = $webAuthService;
+        $this->service = $service;
     }
 
     /**
      * @return RedirectResponse
      */
-    public function auth()
+    public function auth(): RedirectResponse
     {
         $user = Auth::user();
         if (!empty($user) && $user->role == SUPER_ADMIN_ROLE) {
@@ -46,108 +46,70 @@ class AuthController extends Controller
     }
 
     /**
-     * @return Application|Factory|RedirectResponse|View
+     * @return Application|Factory|View
      */
     public function signUp()
     {
-        if (Auth::user() && (Auth::user()->role == SUPER_ADMIN_ROLE)) {
-            return redirect()->route('superAdmin.dashboard');
-        } else if (Auth::user() && (Auth::user()->role == ADMIN_ROLE)) {
-            return redirect()->route('admin.dashboard');
-        } else if (Auth::user() && (Auth::user()->role == USER_ROLE)) {
-            return redirect()->route('home');
-        } else {
-            $data['menu'] = 'sign-up';
-
-            return view('auth.sign-up', $data);
-        }
+        return view('auth.sign-up', ['menu' => 'sign-up']);
     }
 
     /**
      * @param SignUpRequest $request
      * @return RedirectResponse
      */
-    public function signUpProcess(SignUpRequest $request)
+    public function signUpProcess(SignUpRequest $request): RedirectResponse
     {
-        $response = $this->webAuthService->signUpProcess($request);
-        if ($response['success']) {
-            return redirect()->route('verifyEmail')->with(['success' => $response['message']]);
-        } else {
-            return redirect()->back()->with(['error' => $response['message']]);
-        }
+        return $this->webResponse($this->service->signUpProcess($request), 'emailVerificationCode');
     }
 
     /**
-     * @return Application|Factory|RedirectResponse|View
+     * @return RedirectResponse
+     */
+    public function emailVerificationCode(): RedirectResponse
+    {
+        return $this->webResponse( $this->service->sendVerificationEmail(), 'verifyEmail');
+    }
+
+    /**
+     * @return Application|Factory|View
      */
     public function verifyEmail()
     {
-        if (Auth::user() && (Auth::user()->verification_status == true)) {
-            return redirect()->route('home');
-        } else {
-            $response = $this->webAuthService->sendVerificationEmail();
-
-            return $response['success'] ?
-                view('auth.verify_email') :
-                redirect()->back()->with($response['webResponse']);
-        }
+        return view('auth.verify_email');
     }
 
     /**
      * @param VerifyEmailRequest $request
      * @return RedirectResponse
      */
-    public function verifyEmailProcess(VerifyEmailRequest $request)
+    public function verifyEmailProcess(VerifyEmailRequest $request): RedirectResponse
     {
-        $response = $this->webAuthService->verifyEmailProcess($request);
-        if($response['success']){
-            return redirect()->route('root')->with(['success' => $response['message']]);
-        }else{
-            return redirect()->back()->with(['error' => $response['message']]);
-        }
+        return $this->webResponse($this->service->verifyEmailProcess($request), 'root');
     }
 
     /**
-     * @return Application|Factory|RedirectResponse|View
+     * @return Application|Factory|View
      */
     public function signIn()
     {
-        if (Auth::user() && (Auth::user()->role == SUPER_ADMIN_ROLE)) {
-            return redirect()->route('superAdmin.dashboard');
-        } else if (Auth::user() && (Auth::user()->role == ADMIN_ROLE)) {
-            return redirect()->route('admin.dashboard');
-        } else if (Auth::user() && (Auth::user()->role == USER_ROLE)) {
-            return redirect()->route('home');
-        } else {
-            $data['menu'] = 'sign-in';
-
-            return view('auth.sign-in', $data);
-        }
+        return view('auth.sign-in', ['menu' => 'sign-in']);
     }
 
     /**
      * @param SignInRequest $request
      * @return RedirectResponse
      */
-    public function signInProcess(SignInRequest $request)
+    public function signInProcess(SignInRequest $request): RedirectResponse
     {
-        $response = $this->webAuthService->signInProcess($request);
-        if($response['success']){
-            return redirect()->route('root')->with(['success' => $response['message']]);
-        }else{
-            return redirect()->back()->with(['error' => $response['message']]);
-        }
+        return $this->webResponse($this->service->signInProcess($request), 'root');
     }
 
     /**
      * @return RedirectResponse
      */
-    public function signOut()
+    public function signOut(): RedirectResponse
     {
-        Auth::logout();
-        session()->flush();
-
-        return redirect()->route('signIn');
+        return $this->webResponse($this->service->signOut(), 'root');
     }
 
     /**
@@ -162,14 +124,9 @@ class AuthController extends Controller
      * @param SendForgotPasswordEmailRequest $request
      * @return RedirectResponse
      */
-    public function forgetPasswordEmailSendProcess(SendForgotPasswordEmailRequest $request)
+    public function forgetPasswordEmailSendProcess(SendForgotPasswordEmailRequest $request): RedirectResponse
     {
-        $response = $this->webAuthService->sendForgetPasswordEmail($request);
-        if($response['success']){
-            return redirect()->route('forgetPasswordCode')->with(['success' => $response['message']]);
-        }else{
-            return redirect()->back()->with(['error' => $response['message']]);
-        }
+        return $this->webResponse($this->service->sendForgetPasswordEmail($request), 'forgetPasswordCode');
     }
 
     /**
@@ -184,13 +141,8 @@ class AuthController extends Controller
      * @param ResetPasswordRequest $request
      * @return RedirectResponse
      */
-    public function forgetPasswordCodeProcess(ResetPasswordRequest $request)
+    public function forgetPasswordCodeProcess(ResetPasswordRequest $request): RedirectResponse
     {
-        $response = $this->webAuthService->resetPassword($request);
-        if($response['success']){
-            return redirect()->route('signIn')->with(['success' => $response['message']]);
-        }else{
-            return redirect()->back()->with(['error' => $response['message']]);
-        }
+        return $this->webResponse($this->service->resetPassword($request), 'signIn');
     }
 }

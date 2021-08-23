@@ -5,6 +5,7 @@ namespace App\Modules\Authentication\Services;
 
 
 use App\Http\Repositories\CommonRepository;
+use App\Http\Services\ResponseService;
 use App\Jobs\SendForgetPasswordEmailJob;
 use App\Jobs\SendVerificationEmailJob;
 use App\Modules\Authentication\Repositories\PasswordResetRepository;
@@ -18,10 +19,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
-class WebAuthService extends CommonRepository
+class WebAuthService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $userRepository;
     private $passwordResetRepository;
     private $walletSubscriptionRepository;
@@ -46,22 +45,13 @@ class WebAuthService extends CommonRepository
         $this->userWalletRepository = $userWalletRepository;
         $this->referralCodeRepository = $referralCodeRepository;
         $this->referralUserRepository = $referralUserRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function signUpProcess($request)
+    public function signUpProcess(object $request): array
     {
         try {
             DB::beginTransaction();
@@ -111,51 +101,39 @@ class WebAuthService extends CommonRepository
             }
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => __("Successfully Signed up! \n Please verify your account"),
-                'webResponse' => [
-                    'success' => __("Successfully Signed up! \n Please verify your account"),
-                ],
-            ];
+            return $this->response()->success("Successfully Signed up! \n Please verify your account");
         } catch (\Exception $exception) {
             DB::rollBack();
 
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function signInProcess($request)
+    public function signInProcess(object $request): array
     {
-        $credentials = $this->credentials($request->except('_token'));
-        $valid = Auth::attempt($credentials);
-        if ($valid) {
-            $user = Auth::user();
-            if ($user->role == SUPER_ADMIN_ROLE || $user->role == ADMIN_ROLE || $user->role == USER_ROLE ) {
-                return [
-                    'success' => true,
-                    'message' => __('Congratulations! You have signed in successfully.'),
-                    'data' => $user
-                ];
-            } else {
-                Auth::logout();
+        try {
+            $credentials = $this->credentials($request->except('_token'));
+            $valid = Auth::attempt($credentials);
+            if ($valid) {
+                $user = Auth::user();
+                if ($user->role == SUPER_ADMIN_ROLE || $user->role == ADMIN_ROLE || $user->role == USER_ROLE ) {
+                    return $this->response()->success('Congratulations! You have signed in successfully.');
+                } else {
+                    Auth::logout();
 
-                return [
-                    'success' => false,
-                    'message' => __('You are not authorized'),
-                    'data' => null
-                ];
+                    return $this->response()->error('You are not authorized');
+                }
+            } else {
+                return $this->response()->error('Email or password is incorrect');
             }
-        } else {
-            return [
-                'success' => false,
-                'message' => __('Email or password is incorrect'),
-                'data' => null
-            ];
+        } catch (\Exception $exception) {
+            DB::rollBack();
+
+            return $this->response()->error($exception->getMessage());
         }
     }
 
@@ -163,7 +141,7 @@ class WebAuthService extends CommonRepository
      * @param $data
      * @return array
      */
-    private function credentials($data)
+    private function credentials($data): array
     {
         if (filter_var($data['email_username'], FILTER_VALIDATE_EMAIL)) {
             return [
@@ -181,38 +159,36 @@ class WebAuthService extends CommonRepository
     /**
      * @return array
      */
-    public function sendVerificationEmail()
+    public function sendVerificationEmail(): array
     {
         try {
             DB::beginTransaction();
             $randNo = randomNumber(6);
             $user = Auth::user();
             $where = ['id' => $user->id];
-            $insert = ['email_verification_code' => $randNo];
+            $insert = [
+                'email_verification_code' => $randNo,
+                'verification_status' => false
+            ];
             $this->userRepository->update($where, $insert);
             $defaultEmail = 'astharbazar@gmail.com';
             $defaultName = 'Asthar Bazar';
             dispatch(new SendVerificationEmailJob($randNo, $defaultName, $user, $defaultEmail))->onQueue('email-send');
             DB::commit();
-            return [
-                'success' => true,
-                'message' => __("An Email Has Sent To ".$user->email.". Please verify your account"),
-                'webResponse' => [
-                    'success' => __("An Email Has Sent To ".$user->email.". Please verify your account"),
-                ],
-            ];
+
+            return $this->response()->success("An Email Has Sent To ".$user->email.". Please verify your account");
         } catch (\Exception $exception) {
             DB::rollBack();
 
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function verifyEmailProcess($request)
+    public function verifyEmailProcess(object $request): array
     {
         try {
             $user = Auth::user();
@@ -227,25 +203,23 @@ class WebAuthService extends CommonRepository
                     'verification_status' => true
                 ];
                 $done = $this->userRepository->update($where, $data);
+                return $done ?
+                    $this->response()->success(__("Phone Verification Successful."))
+                    : $this->response()->error(__("Invalid verification code."));
 
-                return [
-                    'success' => $done,
-                    'message' => $done ? __('Your email is verified.') : __('Invalid verification code.'),
-                    'webResponse' => [
-                        'success' => $done ? __('Your email is verified.') : __('Invalid verification code.'),
-                    ],
-                ];
+            } else {
+                return $this->response()->error(__("Invalid Input"));
             }
-        }catch(\Exception $e){
-            return $this->errorResponse;
+        }catch(\Exception $exception){
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function sendForgetPasswordEmail($request)
+    public function sendForgetPasswordEmail(object $request): array
     {
         if (filter_var($request->email_username, FILTER_VALIDATE_EMAIL)) {
             $where = ['email' => $request->email_username];
@@ -254,19 +228,11 @@ class WebAuthService extends CommonRepository
         }
         $user = $this->userRepository->whereFirst($where);
         if (empty($user)) {
-            return [
-                'success' => false,
-                'message' =>  __('User not found'),
-                'data' => null
-            ];
+            return $this->response()->error('User not found');
         }
         if ($user->role == USER_ROLE) {
             if (filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
-                return [
-                    'success' => false,
-                    'message' =>  __('Please enter your username instead of email'),
-                    'data' => null
-                ];
+                return $this->response()->error('Please enter your username instead of email');
             }
         }
 
@@ -279,79 +245,71 @@ class WebAuthService extends CommonRepository
                 'user_id' => $user->id,
                 'verification_code' => $randNo
             ]);
-        } catch (\Exception $exception) {
-            return $this->errorResponse;
-        }
 
-        return [
-            'success' => true,
-            'message' =>  __('Code has been sent to ') . ' ' . $user->email,
-            'data' => null
-        ];
+            return $this->response()->success('Code has been sent to ' . $user->email);
+        } catch (\Exception $exception) {
+            return $this->response()->error($exception->getMessage());
+        }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function resetPassword($request)
+    public function resetPassword(object $request): array
     {
-        $where = ['verification_code' => $request->reset_password_code, 'status' => PENDING_STATUS];
-        $passwordResetCode = $this->passwordResetRepository->whereFirst($where);
-        if (!empty($passwordResetCode)) {
-            $where = ['user_id' => $passwordResetCode->user_id, 'status' => PENDING_STATUS];
-            $latestResetCode = $this->passwordResetRepository->whereLast($where);
-            if (($latestResetCode->verification_code != $request->reset_password_code)) {
-                return [
-                    'success' => false,
-                    'message' =>   __('Your given reset password code is incorrect'),
-                    'data' => null
-                ];
+        try {
+            DB::beginTransaction();
+            $where = ['verification_code' => $request->reset_password_code, 'status' => PENDING_STATUS];
+            $passwordResetCode = $this->passwordResetRepository->whereFirst($where);
+            if (!empty($passwordResetCode)) {
+                $where = ['user_id' => $passwordResetCode->user_id, 'status' => PENDING_STATUS];
+                $latestResetCode = $this->passwordResetRepository->whereLast($where);
+                if (($latestResetCode->verification_code != $request->reset_password_code)) {
+                    return $this->response()->error('Your given reset password code is incorrect');
+                }
+            } else {
+                return $this->response()->error('Your given reset password code is incorrect');
             }
-        } else {
-            return [
-                'success' => false,
-                'message' =>   __('Your given reset password code is incorrect'),
-                'data' => null
-            ];
+
+            if (!empty($passwordResetCode)) {
+                $totalDuration = Carbon::now()->diffInMinutes($passwordResetCode->created_at);
+                if ($totalDuration > EXPIRE_TIME_OF_FORGET_PASSWORD_CODE) {
+                    return $this->response()->error('Your code has been expired. Please give your code with in' . EXPIRE_TIME_OF_FORGET_PASSWORD_CODE .  'minutes');
+                }
+                $where = ['id' => $passwordResetCode->user_id];
+                $user = $this->userRepository->whereFirst($where);
+                if (empty($user)) {
+                    return $this->response()->error('User not found');
+                }
+                $where = ['id' => $user->id];
+                $data = ['password' => Hash::make($request->new_password)];
+                $this->userRepository->update($where, $data);
+                $where = ['id' => $passwordResetCode->id];
+                $data = ['status' => ACTIVE_STATUS];
+                $this->passwordResetRepository->update($where, $data);
+                DB::commit();
+
+                return $this->response()->success('Password was reset successfully');
+            }
+            DB::rollback();
+
+            return $this->response()->error('Your given reset password code is incorrect');
+        }catch (\Exception $exception) {
+            DB::rollback();
+
+            return $this->response()->error($exception->getMessage());
         }
+    }
 
-        if (!empty($passwordResetCode)) {
-            $totalDuration = Carbon::now()->diffInMinutes($passwordResetCode->created_at);
-            if ($totalDuration > EXPIRE_TIME_OF_FORGET_PASSWORD_CODE) {
-                return [
-                    'success' => false,
-                    'message' =>  __('Your code has been expired. Please give your code with in') . EXPIRE_TIME_OF_FORGET_PASSWORD_CODE . __('minutes'),
-                    'data' => null
-                ];
-            }
-            $where = ['id' => $passwordResetCode->user_id];
-            $user = $this->userRepository->whereFirst($where);
-            if (empty($user)) {
-                return [
-                    'success' => false,
-                    'message' =>  __('User not found'),
-                    'data' => null
-                ];
-            }
-            $where = ['id' => $user->id];
-            $data = ['password' => Hash::make($request->new_password)];
-            $this->userRepository->update($where, $data);
-            $where = ['id' => $passwordResetCode->id];
-            $data = ['status' => ACTIVE_STATUS];
-            $this->passwordResetRepository->update($where, $data);
+    /**
+     * @return array
+     */
+    public function signOut(): array
+    {
+        Auth::logout();
+        session()->flush();
 
-            return [
-                'success' => true,
-                'message' =>  __('Password is reset successfully'),
-                'data' => null
-            ];
-        }
-
-        return [
-            'success' => false,
-            'message' =>   __('Your given reset password code is incorrect'),
-            'data' => null
-        ];
+        return $this->response()->error('Logged out successfully');
     }
 }
