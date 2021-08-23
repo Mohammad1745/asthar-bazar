@@ -1,0 +1,350 @@
+.calculator-switch {
+    position: fixed;
+    z-index: 9999;
+    top: 100px;
+    background: #FFFFFF;
+    right: -400px;
+}
+.calculator-switch:hover {
+    opacity: 1 !important;
+}
+.calculator-switch .switched-options {
+    position: relative;
+    text-align: left;
+    padding: 1px 14px;
+    -webkit-box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
+    width: 400px;
+}
+.calculator-switch .config-title {
+    text-transform: capitalize;
+    font-weight: 700;
+    font-size: 16px;
+    color: #000;
+    border-bottom: 1px dotted #CCCCCC;
+    border-top: 1px dotted #CCCCCC;
+    margin-bottom: 5px;
+}
+.calculator-switch ul {
+    margin-bottom: 4px;
+}
+.calculator-switch ul .active {
+    color: #005885;
+    font-weight: 700;
+}
+.calculator-switch ul .active a{
+    color: #005885;
+    font-weight: 700;
+}
+.calculator-switch ul .p {
+    font-weight: 400;
+    font-size: 12px;
+    color: #CCC;
+    margin-top: 10px;
+}
+.calculator-switch ul li a {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 24px;
+    color: #808080;
+}
+.calculator-switch ul li a:hover {
+    color: #008ed6;
+}
+.calculator-switch ul.styles {
+    margin-top: 10px;
+}
+.calculator-switch ul.styles li {
+    display: inline-block;
+    margin-right: 5px;
+}
+.calculator-switch .switch-button {
+    opacity: 1 !important;
+    background: #000;
+    padding: 0px 6px;
+    font-size: 24px;
+    color: #ccc !important;
+    position: absolute;
+    overflow: hidden;
+    right: 400px;
+    top: 0px;
+    border-radius: 5px 0px 0px 5px;
+}
+.calculator-switch .switch-button:hover {
+    color: #008ed6;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.mh-calculators h4 {
+    color: #202026cf;
+    margin: 10px 0;
+    text-align: left;
+    font-size: 15px;
+    font-weight: 500;
+}
+/**********
+CALCULATOR
+***********/
+.calculator-switch {
+    background: #100a1c radial-gradient(
+        50% 30% ellipse at center top,
+        #201e40 0%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    color: #6cacc5;
+}
+
+.switched-options {
+    color: #6cacc5;
+    font: 300 18px/1.6 "Source Sans Pro", sans-serif;
+    margin: 0;
+    padding: 5em 0 2em;
+    text-align: center;
+}
+
+h1 {
+    font-weight: 300;
+    margin: 0;
+}
+
+/* Gradient text only on Webkit */
+.warning {
+    background: -webkit-linear-gradient(45deg, #c97874 10%, #463042 90%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: #8c5059;
+    font-weight: 400;
+    margin: 0 auto 6em;
+    max-width: 11em;
+}
+
+.calculator {
+    font-size: 28px;
+    margin: 0 auto;
+    width: 10em;
+}
+
+.calculator::before,
+.calculator::after {
+    content: " ";
+    display: table;
+}
+
+.calculator::after {
+    clear: both;
+}
+
+/* Calculator after dividing by zero */
+.broken {
+    animation: broken 2s;
+    transform: translate3d(0, -2000px, 0);
+    opacity: 0;
+}
+
+.symbol-viewer {
+    color: #c97874;
+    float: left;
+    line-height: 3em;
+    text-align: right;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 0.5em;
+    height: 3em;
+}
+.viewer {
+    color: #c97874;
+    float: left;
+    line-height: 3em;
+    text-align: right;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 7em;
+    height: 3em;
+}
+
+.calc-key {
+    border: 0;
+    background: rgba(42, 50, 113, 0.28);
+    color: #6cacc5;
+    cursor: pointer;
+    float: left;
+    font: inherit;
+    margin: 0.25em;
+    width: 2em;
+    height: 2em;
+    transition: all 0.5s;
+}
+
+.calc-key:hover {
+    background: #201e40;
+}
+
+.calc-key:focus {
+    outline: 0;
+}
+
+/* The value fade-ins that appear */
+/*.calc-key:focus::after {*/
+/*     animation: zoom 1s;*/
+/*     animation-iteration-count: 1;*/
+/*     animation-fill-mode: both; // Fix Firefox from firing animations only once*/
+/*     content: attr(data-num);*/
+/*     cursor: default;*/
+/*     font-size: 100px;*/
+/*     position: absolute;*/
+/*     top: 1.5em;*/
+/*     left: 50%;*/
+/*     text-align: center;*/
+/*     margin-left: -24px;*/
+/*     opacity: 0;*/
+/*     width: 48px;*/
+/* }*/
+
+/*!* Same as above, modified for operators *!*/
+/*.ops:focus::after {*/
+/*    content: attr(data-ops);*/
+/*    margin-left: -210px;*/
+/*    width: 420px;*/
+/*}*/
+
+/*!* Same as above, modified for result *!*/
+/*.equals:focus::after {*/
+/*    content: attr(data-result);*/
+/*    margin-left: -300px;*/
+/*    width: 600px;*/
+/*}*/
+
+/* Reset .calc-key */
+
+.reset {
+    background: rgba(201, 120, 116, 0.28);
+    color: #c97874;
+    font-weight: 400;
+    margin-left: -77px;
+    padding: 0.5em 1em;
+    position: absolute;
+    top: -10em;
+    left: 50%;
+    width: auto;
+    height: auto;
+}
+
+.reset:hover {
+    background: #c97874;
+    color: #100a1c;
+}
+
+/* When .calc-key is revealed */
+.show-reset{
+    top: 10em;
+    animation: fadein 4s;
+}
+
+/* Animations */
+
+/* Values that appear onclick */
+@keyframes zoom {
+    0% {
+        transform: scale(0.2);
+        opacity: 1;
+    }
+
+    70% {
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+/* Division by zero animation */
+@keyframes broken {
+    0% {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+    }
+
+    5% {
+        transform: rotate(5deg);
+    }
+
+    15% {
+        transform: rotate(-5deg);
+    }
+
+    20% {
+        transform: rotate(5deg);
+    }
+
+    25% {
+        transform: rotate(-5deg);
+    }
+
+    50% {
+        transform: rotate(45deg);
+    }
+
+    70% {
+        transform: translate3d(0, 2000px, 0);
+        opacity: 1;
+    }
+
+    75% {
+        opacity: 0;
+    }
+
+    100% {
+        transform: translate3d(0, -2000px, 0);
+    }
+}
+
+/* Reset .calc-key fadein */
+@keyframes fadein {
+    0% {
+        top: 20em;
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@media (min-width: 1100px) {
+    .calculator {
+        width: 12em;
+    }
+    .viewer {
+        width: 8.5em;
+    }
+    .calc-key {
+        margin: 0.5em;
+    }
+}
+/*@media (max-width: 500px) {*/
+/*    .calculator-switch .switched-options {*/
+/*        width: 300px;*/
+/*    }*/
+/*    .calculator-switch .switch-button {*/
+/*        !*right: 300px;*!*/
+/*    }*/
+/*}*/
+
+@media only screen and (max-width: 1100px)
+{
+    .calculator-switch .switched-options {
+        width: 300px;
+    }
+    .calculator-switch {
+        right: -300px;
+    }
+    .calculator-switch .switch-button {
+        right: 300px;
+    }
+}

@@ -1,0 +1,119 @@
+@charset "utf-8";
+/* CSS Document */
+
+/******************************
+
+[Table of Contents]
+
+1. Fonts
+2. Datatables
+
+
+******************************/
+
+/***********
+1. Fonts
+***********/
+
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800|Poppins:300,400,500,600,700,800,900');
+
+/*********************************
+2. Datatables
+*********************************/
+.table-bordered th, .table-bordered td {
+    border: none;
+}
+.dataTables_wrapper.no-footer .dataTables_scrollBody {
+    border-bottom: solid 1px #b0b2b3;
+}
+table.dataTable thead th, table.dataTable thead td {
+    padding: 15px 18px;
+    border-bottom: none;
+ }
+.dataTables_scrollHeadInner{
+    width: 100%;
+    background: #edf4f6;
+}
+div.dataTables_scrollBody table tbody tr th, div.dataTables_scrollBody table tbody tr td {
+    font-size: 16px;
+    font-weight: 700;
+    color: #414141;
+}
+div.dataTables_wrapper div.dataTables_filter input,
+.dataTables_length .form-control{
+    color: #414141;
+    font-size: 20px;
+    margin-left: 0em;
+    display: inline-block;
+    width: 100%;
+    height: 52px;
+    padding-left: 15px;
+    -webkit-transition: all 200ms ease;
+    -moz-transition: all 200ms ease;
+    -ms-transition: all 200ms ease;
+    -o-transition: all 200ms ease;
+    transition: all 200ms ease;
+}
+.dataTables_wrapper .row:first-child{
+    margin-bottom:30px;
+}
+.dataTables_wrapper .row:last-child{
+    margin-top:30px;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    border: none;
+ }
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    transition: all 200ms ease;
+    background: #414141;
+    padding: 0;
+    margin-left: 10px;
+    cursor: pointer;
+    border: none;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button a{
+    transition: all 200ms ease;
+    color: #bbe432;
+    border: none;
+    background: transparent;
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 10px 20px;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:first-child,
+.dataTables_wrapper .dataTables_paginate .paginate_button:last-child {
+    background: #bbe432;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:first-child a,
+.dataTables_wrapper .dataTables_paginate .paginate_button:last-child a{
+    color: #414141;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #bbe432;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button a:hover{
+    color: #414141;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:first-child:hover,
+.dataTables_wrapper .dataTables_paginate .paginate_button:last-child:hover{
+    background: #414141;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:first-child a:hover,
+.dataTables_wrapper .dataTables_paginate .paginate_button:last-child a:hover{
+    color: #bbe432;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:active {
+    cursor: default;
+    background: #bbe432;
+    color: #414141;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled a,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover a,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:active a{
+    cursor: default;
+    color: #414141;
+}

@@ -1,0 +1,45 @@
+<?php
+
+const USER_PENDING_STATUS = 0;
+const USER_ACTIVE_STATUS = 1;
+const USER_DELETE_STATUS = 5;
+
+
+const SUPER_ADMIN_ROLE = 1;
+const ADMIN_ROLE = 2;
+const USER_ROLE = 3;
+
+const PENDING_STATUS = 0;
+const ACTIVE_STATUS = 1;
+const DELETE_STATUS = 5;
+
+const EXPIRE_TIME_OF_FORGET_PASSWORD_CODE = 10;
+////////////////////////////////////////////////////
+const TITLE_CORE = 'Asthar Bazar - Promises 100% Reliance';
+
+const DEPARTMENT_UPCOMING_STATUS = 1;
+const DEPARTMENT_INACTIVE_STATUS = 2;
+const DEPARTMENT_ACTIVE_STATUS = 3;
+
+const PAGINATE_SMALL=10;
+const PAGINATE_MEDIUM=20;
+const PAGINATE_LARGE=50;
+
+const INACTIVE = 0;
+const ACTIVE = 1;
+
+const PAYMENT_PENDING_STATUS = 1;
+const PAYMENT_DONE_STATUS = 2;
+
+const PAYMENT_BY_BKASH = 1;
+const CASH_ON_DELIVERY = 2;
+
+const DELIVERY_PENDING_STATUS = 1;
+const DELIVERY_PROCESSING_STATUS = 2;
+const DELIVERY_COMPLETED_STATUS = 3;
+const DELIVERY_CANCELLED_STATUS = 4;
+
+const SA_PARIBAHAN = 1;
+const COURIER_SERVICE = 2;
+const EXPRESS_SHIPPING = 3;
+const AIR_MAIL = 4;
