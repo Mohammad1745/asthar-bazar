@@ -110,7 +110,7 @@
                                 <ul class="main_extra_total_list">
                                     <li class="d-flex flex-row align-items-center justify-content-start">
                                         <div class="main_extra_total_title">Subtotal</div>
-                                        <div class="main_extra_total_value ml-auto">৳ {{$cart->price}}</div>
+                                        <div class="main_extra_total_value ml-auto">৳ {{$cart['price']}}</div>
                                     </li>
                                     <li class="d-flex flex-row align-items-center justify-content-start">
                                         <div class="main_extra_total_title">Coupon</div>
@@ -118,7 +118,7 @@
                                     </li>
                                     <li class="d-flex flex-row align-items-center justify-content-start">
                                         <div class="main_extra_total_title">Total</div>
-                                        <div class="main_extra_total_value ml-auto">৳ {{$cart->price}}</div>
+                                        <div class="main_extra_total_value ml-auto">৳ {{$cart['price']}}</div>
                                     </li>
                                 </ul>
                                 <div class="button_extend trans_200"><a href="{{route('cart.checkout')}}">proceed to checkout</a></div>

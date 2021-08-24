@@ -4,6 +4,7 @@
 namespace App\Modules\Cart\Services;
 
 
+use App\Http\Services\ResponseService;
 use App\Modules\Cart\Repositories\CartDetailsRepository;
 use App\Modules\Cart\Repositories\CartRepository;
 use App\Modules\Cart\Repositories\ProductRepository;
@@ -11,10 +12,8 @@ use App\Modules\Cart\Repositories\ProductVariationRepository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class CartService
+class CartService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $cartRepository;
     private $cartDetailsRepository;
     private $productRepository;
@@ -33,21 +32,12 @@ class CartService
         $this->cartDetailsRepository = $cartDetailsRepository;
         $this->productRepository = $productRepository;
         $this->productVariationRepository = $productVariationRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
      * @return array
      */
-    public function cart()
+    public function cart(): array
     {
         try{
             $user = Auth::user();
@@ -61,16 +51,10 @@ class CartService
                 ];
                 $cart = $this->cartRepository->create($cartData);
             }
-            return [
-                'success' => true,
-                'message' => 'Cart Found.',
-                'data' => $cart,
-                'webResponse' => [
-                    'success' => 'Cart Found.',
-                ],
-            ];
+
+            return $this->response($cart->toArray())->success('Cart Found.');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
@@ -80,15 +64,13 @@ class CartService
      */
     public function cartDetails($cart)
     {
-        $where = ['carts.id' => $cart->id];
-
-        return $this->cartDetailsRepository->details($where);
+        return $this->cartDetailsRepository->details(['carts.id' => $cart['id']]);
     }
 
     /**
-     * @return mixed
+     * @return array
      */
-    public function clearCart()
+    public function clearCart(): array
     {
         try{
             DB::beginTransaction();
@@ -107,26 +89,19 @@ class CartService
             }
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => 'Cart Cleared.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Cart Cleared.',
-                ],
-            ];
+            return $this->response()->success('Cart Cleared.');
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
      * @param $encryptedProductVariationId
-     * @return mixed
+     * @return array
      */
-    public function addProductVariation($encryptedProductVariationId)
+    public function addProductVariation($encryptedProductVariationId): array
     {
         try{
             DB::beginTransaction();
@@ -164,18 +139,11 @@ class CartService
             $this->cartRepository->update($where, $cartData);
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => 'Product Added to Cart.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Product Added to Cart.',
-                ],
-            ];
+            return $this->response()->success('Product Added to Cart.');
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
@@ -183,7 +151,7 @@ class CartService
      * @param $request
      * @return array
      */
-    public function updateCart($request)
+    public function updateCart($request): array
     {
         try{
             DB::beginTransaction();
@@ -222,18 +190,11 @@ class CartService
             $this->cartRepository->update($where, $cartData);
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => 'Cart has been updated.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Cart has been updated.',
-                ],
-            ];
+            return $this->response()->success('Cart has been updated.');
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 }
