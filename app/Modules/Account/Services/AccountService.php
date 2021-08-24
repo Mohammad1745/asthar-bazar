@@ -4,6 +4,7 @@
 namespace App\Modules\Account\Services;
 
 
+use App\Http\Services\ResponseService;
 use App\Modules\Account\Repositories\DepartmentOwnershipRepository;
 use App\Modules\Account\Repositories\DepartmentTransactionRepository;
 use App\Modules\Account\Repositories\OrderRepository;
@@ -16,10 +17,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
-class AccountService
+class AccountService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $referralCodeRepository;
     private $referralUserRepository;
     private $departmentOwnershipRepository;
@@ -55,15 +54,6 @@ class AccountService
         $this->departmentTransactionRepository = $departmentTransactionRepository;
         $this->walletSubscriptionRepository = $walletSubscriptionRepository;
         $this->orderRepository=$orderRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
@@ -71,9 +61,7 @@ class AccountService
      */
     public function referralCode()
     {
-        $where = ['user_id' => Auth::user()->id];
-
-        return $this->referralCodeRepository->whereLast($where);
+        return $this->referralCodeRepository->whereLast(['user_id' => Auth::user()->id]);
     }
 
     /**
@@ -81,9 +69,7 @@ class AccountService
      */
     public function referralUsersCount()
     {
-        $where = ['parent_id' => Auth::user()->id];
-
-        return $this->referralUserRepository->countWhere($where);
+        return $this->referralUserRepository->countWhere(['parent_id' => Auth::user()->id]);
     }
 
     /**
@@ -91,15 +77,13 @@ class AccountService
      */
     public function orderCount()
     {
-        $where = ['user_id' => Auth::user()->id];
-
-        return $this->orderRepository->countWhere($where);
+        return $this->orderRepository->countWhere(['user_id' => Auth::user()->id]);
     }
 
     /**
      * @return array
      */
-    public function generateReferralCode()
+    public function generateReferralCode(): array
     {
         try{
             $user = Auth::user();
@@ -114,26 +98,12 @@ class AccountService
                 $referralCodeData['user_id'] = $user->id;
                 $this->referralCodeRepository->create($referralCodeData);
 
-                return [
-                    'success' => true,
-                    'message' => 'Referral Code has been generated.',
-                    'data' => [],
-                    'webResponse' => [
-                        'success' => 'Referral Code has been generated.'
-                    ],
-                ];
+                return $this->response()->success('Referral Code has been generated.');
             }else{
-                return [
-                    'success' => true,
-                    'message' => 'Referral Code has already been generated.',
-                    'data' => [],
-                    'webResponse' => [
-                        'success' => 'Referral Code has already been generated.'
-                    ],
-                ];
+                return $this->response()->success('Referral Code has already been generated.');
             }
-        }catch (\Exception $e){
-            return $this->errorResponse;
+        }catch (\Exception $exception){
+            return $this->response()->error($exception->getMessage());
         }
     }
 
@@ -162,7 +132,7 @@ class AccountService
      * @param $encryptedWalletSubscriptionId
      * @return array
      */
-    public function subscribePackage($encryptedWalletSubscriptionId)
+    public function subscribePackage($encryptedWalletSubscriptionId): array
     {
         try{
             $where = ['id' => decrypt($encryptedWalletSubscriptionId)];
@@ -178,24 +148,13 @@ class AccountService
                     'expires_at' => (Carbon::now())->addYear()
                 ];
                 $this->userWalletRepository->update($where, $userWalletData);
-                return [
-                    'success' => true,
-                    'message' => 'Successfully subscribed to '.$walletSubscription->package.' package.',
-                    'webResponse' => [
-                        'success' => 'Successfully subscribed to '.$walletSubscription->package.' package.'
-                    ],
-                ];
+
+                return $this->response()->success('Successfully subscribed to '.$walletSubscription->package.' package.');
             }else{
-                return [
-                    'success' => false,
-                    'message' => 'Doesn\'t have enough money to subscribe '.$walletSubscription->package.' package.',
-                    'webResponse' => [
-                        'success' => 'Doesn\'t have enough money to subscribe '.$walletSubscription->package.' package.'
-                    ],
-                ];
+                return $this->response()->success('Doesn\'t have enough money to subscribe '.$walletSubscription->package.' package.');
             }
-        }catch (\Exception $e){
-            return $this->errorResponse;
+        }catch (\Exception $exception){
+            return $this->response()->error($exception->getMessage());
         }
     }
 
@@ -237,9 +196,9 @@ class AccountService
     }
 
     /**
-     * @return mixed
+     * @return array
      */
-    public function departmentTransactions()
+    public function departmentTransactions(): array
     {
         $where = ['user_id' => Auth::user()->id];
         $departmentOwnership = $this->departmentOwnershipRepository->whereFirst($where);
@@ -263,15 +222,13 @@ class AccountService
      */
     public function netProfit()
     {
-        $where = ['status' => true];
-
-        return $this->departmentTransactionRepository->sumWhere($where, 'net_profit');
+        return $this->departmentTransactionRepository->sumWhere(['status' => true], 'net_profit');
     }
 
     /**
      * @return array
      */
-    public function transactions()
+    public function transactions(): array
     {
         $where = ['status' => true];
 
@@ -326,7 +283,7 @@ class AccountService
                 })
                 ->rawColumns(['actions'])
                 ->make(true);
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             return [];
         }
     }
