@@ -14,15 +14,15 @@ use Illuminate\View\View;
 
 class AccountController extends Controller
 {
-    private $accountService;
+    private $service;
 
     /**
      * AccountController constructor.
-     * @param AccountService $accountService
+     * @param AccountService $service
      */
-    public function __construct(AccountService $accountService)
+    public function __construct(AccountService $service)
     {
-        $this->accountService = $accountService;
+        $this->service = $service;
     }
 
     /**
@@ -33,10 +33,10 @@ class AccountController extends Controller
         $data['base'] = 'account';
         $data['menu'] = 'account';
         $data['user'] = Auth::user();
-        $data['profilePercentage'] = $this->accountService->profilePercentage();
-        $data['wallet'] = $this->accountService->wallet();
-        $data['referralUsersCount'] = $this->accountService->referralUsersCount();
-        $data['orderCount'] = $this->accountService->orderCount();
+        $data['profilePercentage'] = $this->service->profilePercentage();
+        $data['wallet'] = $this->service->wallet();
+        $data['referralUsersCount'] = $this->service->referralUsersCount();
+        $data['orderCount'] = $this->service->orderCount();
 
         return view('user.account.content', $data);
     }
@@ -49,22 +49,18 @@ class AccountController extends Controller
         $data['base'] = 'account';
         $data['menu'] = 'referral';
         $data['user'] = Auth::user();
-        $data['referralCode'] = $this->accountService->referralCode();
-        $data['referralUsersCount'] = $this->accountService->referralUsersCount();
+        $data['referralCode'] = $this->service->referralCode();
+        $data['referralUsersCount'] = $this->service->referralUsersCount();
 
         return view('user.account.referral', $data);
     }
 
     /**
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function generateReferralCode()
+    public function generateReferralCode(): RedirectResponse
     {
-        $response = $this->accountService->generateReferralCode();
-
-        return $response['success'] ?
-            redirect(route('account.referral'))->with($response['webResponse']) :
-            redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->generateReferralCode(), 'account.referral');
     }
 
     /**
@@ -75,8 +71,8 @@ class AccountController extends Controller
         $data['base'] = 'account';
         $data['menu'] = 'wallet';
         $data['user'] = Auth::user();
-        $data['wallet'] = $this->accountService->wallet();
-        $data['walletSubscriptions'] = $this->accountService->walletSubscriptions();
+        $data['wallet'] = $this->service->wallet();
+        $data['walletSubscriptions'] = $this->service->walletSubscriptions();
 
         return view('user.account.wallet', $data);
     }
@@ -86,19 +82,15 @@ class AccountController extends Controller
      */
     public function walletSubscriptionPackageList()
     {
-        return $this->accountService->walletSubscriptionPackageListQuery();
+        return $this->service->walletSubscriptionPackageListQuery();
     }
 
     /**
      * @param $encryptedWalletSubscriptionId
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function subscribePackage($encryptedWalletSubscriptionId)
+    public function subscribePackage($encryptedWalletSubscriptionId): RedirectResponse
     {
-        $response = $this->accountService->subscribePackage($encryptedWalletSubscriptionId);
-
-        return $response['success'] ?
-            redirect(route('account.wallet'))->with($response['webResponse']) :
-            redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->subscribePackage($encryptedWalletSubscriptionId), 'account.wallet');
     }
 }
