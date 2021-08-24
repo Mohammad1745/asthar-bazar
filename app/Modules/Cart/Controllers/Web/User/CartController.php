@@ -13,11 +13,11 @@ use Illuminate\View\View;
 
 class CartController extends Controller
 {
-    private $cartService;
+    private $service;
 
-    public function __construct(CartService $cartService)
+    public function __construct(CartService $service)
     {
-        $this->cartService = $cartService;
+        $this->service = $service;
     }
 
     /**
@@ -28,10 +28,10 @@ class CartController extends Controller
         $data['base'] = 'home';
         $data['menu'] = 'cart';
         $data['user'] = Auth::user();
-        $response = $this->cartService->cart();
+        $response = $this->service->cart();
         if($response['success']){
             $data['cart'] = $response['data'];
-            $data['cartDetails'] = $this->cartService->cartDetails($response['data']);
+            $data['cartDetails'] = $this->service->cartDetails($response['data']);
 
             return view('user.cart.content', $data);
         }else{
@@ -42,33 +42,27 @@ class CartController extends Controller
     /**
      * @return RedirectResponse
      */
-    public function clear()
+    public function clear(): RedirectResponse
     {
-        $response = $this->cartService->clearCart();
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse( $this->service->clearCart());
     }
 
     /**
      * @param $encryptedProductVariationId
      * @return RedirectResponse
      */
-    public function addProductVariation($encryptedProductVariationId)
+    public function addProductVariation($encryptedProductVariationId): RedirectResponse
     {
-        $response = $this->cartService->addProductVariation($encryptedProductVariationId);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse( $this->service->addProductVariation($encryptedProductVariationId));
     }
 
     /**
      * @param UpdateCartRequest $request
      * @return RedirectResponse
      */
-    public function update(UpdateCartRequest $request)
+    public function update(UpdateCartRequest $request): RedirectResponse
     {
-        $response = $this->cartService->updateCart($request);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse( $this->service->updateCart($request));
     }
 
     /**
@@ -79,7 +73,7 @@ class CartController extends Controller
         $data['base'] = 'home';
         $data['menu'] = 'cart';
         $data['user'] = Auth::user();
-        $response = $this->cartService->cart();
+        $response = $this->service->cart();
         if($response['success']&&$response['data']['quantity']>0){
             return view('user.cart.checkout', $data);
         }else{
