@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 Route::get('category', "CategoryController@category")->name('admin.category');
 Route::get('category/list', "CategoryController@categoryList")->name('admin.category.list');
 Route::post('category/store', "CategoryController@store")->name('admin.category.store');
