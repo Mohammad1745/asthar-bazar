@@ -15,11 +15,11 @@ use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
-    private $categoryService;
+    private $service;
 
-    public function __construct(CategoryService $categoryService)
+    public function __construct(CategoryService $service)
     {
-        $this->categoryService = $categoryService;
+        $this->service = $service;
     }
 
     /**
@@ -30,7 +30,7 @@ class CategoryController extends Controller
         $data['base'] = 'department';
         $data['menu'] = 'category';
         $data['user'] = Auth::user();
-        $data['categories'] = $this->categoryService->categoriesNotHavingProducts();
+        $data['categories'] = $this->service->categoriesNotHavingProducts();
 
         return view('admin.category.content', $data);
     }
@@ -40,7 +40,7 @@ class CategoryController extends Controller
      */
     public function categoryList()
     {
-        return $this->categoryService->categoryListQuery();
+        return $this->service->categoryListQuery();
     }
 
     /**
@@ -52,44 +52,36 @@ class CategoryController extends Controller
         $data['base'] = 'department';
         $data['menu'] = 'category';
         $data['user'] = Auth::user();
-        $data['category'] = $this->categoryService->details($encryptedCategoryId);
-        $data['categories'] = $this->categoryService->categoriesNotHavingProducts();
+        $data['category'] = $this->service->details($encryptedCategoryId);
+        $data['categories'] = $this->service->categoriesNotHavingProducts();
 
         return view('admin.category.details', $data);
     }
 
     /**
      * @param StoreCategoryRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function store(StoreCategoryRequest $request)
+    public function store(StoreCategoryRequest $request): RedirectResponse
     {
-        $response = $this->categoryService->store($request);
-
-        return redirect(route('admin.category'))->with($response['webResponse']);
+        return $this->webResponse($this->service->store($request), 'admin.category');
     }
 
     /**
      * @param UpdateCategoryRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function update(UpdateCategoryRequest $request)
+    public function update(UpdateCategoryRequest $request): RedirectResponse
     {
-        $response = $this->categoryService->update($request);
-
-        return redirect(route('admin.category'))->with($response['webResponse']);
+        return $this->webResponse($this->service->update($request), 'admin.category');
     }
 
     /**
      * @param $encryptedCategoryId
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function delete($encryptedCategoryId)
+    public function delete($encryptedCategoryId): RedirectResponse
     {
-        $response = $this->categoryService->delete($encryptedCategoryId);
-
-        return $response['success'] ?
-            redirect(route('admin.category'))->with($response['webResponse']):
-            redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->delete($encryptedCategoryId), 'admin.category');
     }
 }
