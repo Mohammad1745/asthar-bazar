@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 Route::get('account', "AccountController@account")->name('account');
 
 Route::get('account/referral', "AccountController@referral")->name('account.referral');
