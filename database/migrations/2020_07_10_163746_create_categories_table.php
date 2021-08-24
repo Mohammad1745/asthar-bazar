@@ -21,6 +21,7 @@ class CreateCategoriesTable extends Migration
             $table->text('description')->nullable();
             $table->timestamps();
             $table->foreign('department_id')->references('id')->on('departments')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('parent_id')->references('id')->on('categories')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 
