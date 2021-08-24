@@ -4,16 +4,15 @@
 namespace App\Modules\Category\Services;
 
 
+use App\Http\Services\ResponseService;
 use App\Modules\Category\Repositories\CategoryRepository;
 use App\Modules\Category\Repositories\DepartmentOwnershipRepository;
 use App\Modules\Category\Repositories\ProductRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
-class CategoryService
+class CategoryService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $departmentOwnershipRepository;
     private $categoryRepository;
     private $productRepository;
@@ -29,21 +28,13 @@ class CategoryService
         $this->departmentOwnershipRepository = $departmentOwnershipRepository;
         $this->categoryRepository = $categoryRepository;
         $this->productRepository = $productRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
-     * @return mixed
+     * @return array
      */
-    public function categoriesNotHavingProducts() {
+    public function categoriesNotHavingProducts(): array
+    {
         $where = ['department_ownerships.user_id' => Auth::user()->id];
         $categories = $this->categoryRepository->categories($where)->get();
         $categoriesNotHavingProducts = [];
@@ -59,34 +50,29 @@ class CategoryService
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function store($request) {
+    public function store(object $request): array
+    {
         try{
             $where = ['user_id' => Auth::user()->id];
             $departmentOwnership = $this->departmentOwnershipRepository->whereLast($where);
             $categoryData = $this->prepareCategoryData($departmentOwnership->department_id, $request);
             $this->categoryRepository->create($categoryData);
 
-            return [
-                'success' => true,
-                'message' => __('Category has been added.'),
-                'webResponse' => [
-                    'success' => __('Category has been added.')
-                ],
-            ];
+            return $this->response()->success(__('Category has been added.'));
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $departmentId
-     * @param $request
+     * @param int $departmentId
+     * @param object $request
      * @return array
      */
-    private function prepareCategoryData($departmentId, $request)
+    private function prepareCategoryData(int $departmentId, object $request): array
     {
         $preparedData = [
             'title' => $request->title,
@@ -101,10 +87,11 @@ class CategoryService
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function update($request) {
+    public function update(object $request): array
+    {
         try{
             $where = ['user_id' => Auth::user()->id];
             $departmentOwnership = $this->departmentOwnershipRepository->whereLast($where);
@@ -112,24 +99,18 @@ class CategoryService
             $categoryData = $this->prepareUpdatedCategoryData($departmentOwnership->department_id, $request);
             $this->categoryRepository->update($where, $categoryData);
 
-            return [
-                'success' => true,
-                'message' => __('Category has been updated.'),
-                'webResponse' => [
-                    'success' => __('Category has been updated.')
-                ],
-            ];
+            return $this->response()->success(__('Category has been updated'));
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $departmentId
-     * @param $request
+     * @param int $departmentId
+     * @param object $request
      * @return array
      */
-    private function prepareUpdatedCategoryData($departmentId, $request)
+    private function prepareUpdatedCategoryData(int $departmentId, object $request): array
     {
         $preparedData = [
             'title' => $request->title,
@@ -139,17 +120,17 @@ class CategoryService
         if(isset($request->parent_id)){
             $preparedData['parent_id'] = $request->parent_id;
         }else{
-            $preparedData['parent_id'] = mull;
+            $preparedData['parent_id'] = null;
         }
 
         return $preparedData;
     }
 
     /**
-     * @param $encryptedCategoryId
+     * @param string $encryptedCategoryId
      * @return mixed
      */
-    public function details($encryptedCategoryId)
+    public function details(string $encryptedCategoryId)
     {
         $where = ['id' => decrypt($encryptedCategoryId)];
         $category = $this->categoryRepository->whereLast($where);
@@ -168,25 +149,18 @@ class CategoryService
     }
 
     /**
-     * @param $encryptedCategoryId
+     * @param string $encryptedCategoryId
      * @return array
      */
-    public function delete($encryptedCategoryId)
+    public function delete(string $encryptedCategoryId): array
     {
         try{
             $where = ['id' => decrypt($encryptedCategoryId)];
             $this->categoryRepository->deleteWhere($where);
 
-            return [
-                'success' => true,
-                'message' => 'Category has been deleted.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Category has been deleted.'
-                ],
-            ];
+            return $this->response()->success('Category has been deleted.');
         }catch (\Exception $e){
-            return $this->errorResponse;
+            return $this->response()->error($e->getMessage());
         }
     }
 
