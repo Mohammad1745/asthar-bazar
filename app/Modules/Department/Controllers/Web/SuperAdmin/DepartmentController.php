@@ -16,15 +16,15 @@ use Illuminate\View\View;
 
 class DepartmentController extends Controller
 {
-    private $departmentService;
+    private $service;
 
     /**
      * DepartmentController constructor.department.php
-     * @param DepartmentService $departmentService
+     * @param DepartmentService $service
      */
-    public function __construct(DepartmentService $departmentService)
+    public function __construct(DepartmentService $service)
     {
-        $this->departmentService = $departmentService;
+        $this->service = $service;
     }
 
     /**
@@ -35,7 +35,7 @@ class DepartmentController extends Controller
         $data['base'] = 'dashboard';
         $data['menu'] = 'department';
         $data['user'] = Auth::user();
-        $data['freshAdmins'] = $this->departmentService->freshAdmins();
+        $data['freshAdmins'] = $this->service->freshAdmins();
 
         return view('super_admin.department.content', $data);
     }
@@ -45,7 +45,7 @@ class DepartmentController extends Controller
      */
     public function departmentList()
     {
-        return $this->departmentService->departmentListQuery();
+        return $this->service->departmentListQuery();
     }
 
     /**
@@ -57,8 +57,8 @@ class DepartmentController extends Controller
         $data['base'] = 'dashboard';
         $data['menu'] = 'department';
         $data['user'] = Auth::user();
-        $data['departmentDetail'] = $this->departmentService->details($encryptedDepartmentId);
-        $data['freshAdmins'] = $this->departmentService->freshAdmins();
+        $data['departmentDetail'] = $this->service->details($encryptedDepartmentId);
+        $data['freshAdmins'] = $this->service->freshAdmins();
 
         return view('super_admin.department.details', $data);
     }
@@ -69,7 +69,7 @@ class DepartmentController extends Controller
      */
     public function store(StoreDepartmentRequest $request)
     {
-        $response = $this->departmentService->store($request);
+        $response = $this->service->store($request);
 
         return redirect(route('superAdmin.department.details', encrypt($response['data']['id'])))->with($response['webResponse']);
     }
@@ -80,42 +80,36 @@ class DepartmentController extends Controller
      */
     public function update(UpdateDepartmentRequest $request)
     {
-        $response = $this->departmentService->update($request);
+        $response = $this->service->update($request);
 
         return redirect(route('superAdmin.department.details', encrypt($response['data']['id'])))->with($response['webResponse']);
     }
 
     /**
-     * @param $encryptedDepartmentId
-     * @return Application|RedirectResponse|Redirector
+     * @param string $encryptedDepartmentId
+     * @return RedirectResponse
      */
-    public function activate($encryptedDepartmentId)
+    public function activate(string $encryptedDepartmentId): RedirectResponse
     {
-        $response = $this->departmentService->activate($encryptedDepartmentId);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->activate($encryptedDepartmentId));
     }
 
     /**
-     * @param $encryptedDepartmentId
-     * @return Application|RedirectResponse|Redirector
+     * @param string $encryptedDepartmentId
+     * @return RedirectResponse
      */
-    public function deactivate($encryptedDepartmentId)
+    public function deactivate(string $encryptedDepartmentId): RedirectResponse
     {
-        $response = $this->departmentService->deactivate($encryptedDepartmentId);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->deactivate($encryptedDepartmentId));
     }
 
     /**
-     * @param $encryptedDepartmentId
-     * @return Application|RedirectResponse|Redirector
+     * @param string $encryptedDepartmentId
+     * @return RedirectResponse
      */
-    public function paymentDone($encryptedDepartmentId)
+    public function paymentDone(string $encryptedDepartmentId): RedirectResponse
     {
-        $response = $this->departmentService->paymentDone($encryptedDepartmentId);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->paymentDone($encryptedDepartmentId));
     }
 
     /**
@@ -124,7 +118,7 @@ class DepartmentController extends Controller
      */
     public function saleRecordList($encryptedDepartmentId)
     {
-        return $this->departmentService->specificSaleRecordListQuery($encryptedDepartmentId);
+        return $this->service->specificSaleRecordListQuery($encryptedDepartmentId);
     }
 
     /**
@@ -133,6 +127,6 @@ class DepartmentController extends Controller
      */
     public function productVariationList($encryptedDepartmentId)
     {
-        return $this->departmentService->specificProductVariationListQuery($encryptedDepartmentId);
+        return $this->service->specificProductVariationListQuery($encryptedDepartmentId);
     }
 }

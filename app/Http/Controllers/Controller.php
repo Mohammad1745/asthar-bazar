@@ -63,4 +63,35 @@ class Controller extends BaseController
 
         return $redirection->with($this->successResponse($serviceResponse['message']));
     }
+
+//    /**
+//     * @param array $serviceResponse
+//     * @param string|null $successRoute
+//     * @param string|null $failRoute
+//     * @param string|null $successRouteParameter
+//     * @param string|null $failRouteParameter
+//     * @return RedirectResponse
+//     */
+//    protected function webResponse(array $serviceResponse, string $successRoute=null, string $failRoute=null, string $successRouteParameter=null, string $failRouteParameter=null): RedirectResponse
+//    {
+//        if ($serviceResponse['data']) {
+//            $successRouteParameter = array_merge($successRouteParameter, $serviceResponse['data']);
+//            $failRouteParameter = array_merge($failRouteParameter, $serviceResponse['data']);
+//        }
+//
+//        $redirection = redirect();
+//        if (!$serviceResponse['success']){
+//            $redirection = $failRoute ?
+//                $redirection->route($failRoute, $failRouteParameter) :
+//                $redirection->back();
+//
+//            return $redirection->with($this->errorResponse($serviceResponse['message']));
+//        }
+//
+//        $redirection = $successRoute ?
+//            $redirection->route($successRoute, $successRouteParameter) :
+//            $redirection->back();
+//
+//        return $redirection->with($this->successResponse($serviceResponse['message']));
+//    }
 }

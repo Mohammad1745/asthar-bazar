@@ -12,15 +12,15 @@ use Illuminate\View\View;
 
 class DepartmentController extends Controller
 {
-    private $departmentService;
+    private $service;
 
     /**
      * DepartmentController constructor.department.php
-     * @param DepartmentService $departmentService
+     * @param DepartmentService $service
      */
-    public function __construct(DepartmentService $departmentService)
+    public function __construct(DepartmentService $service)
     {
-        $this->departmentService = $departmentService;
+        $this->service = $service;
     }
 
     /**
@@ -31,12 +31,12 @@ class DepartmentController extends Controller
         $data['base'] = 'department';
         $data['menu'] = 'department';
         $data['user'] = Auth::user();
-        $data['department'] = $this->departmentService->department();
-        $data['typeCount'] = $this->departmentService->typeCount();
-        $data['categoryCount'] = $this->departmentService->categoryCount();
-        $data['productCount'] = $this->departmentService->productCount();
-        $data['productVariationCount'] = $this->departmentService->productVariationCount();
-        $data['saleRecordCount'] = $this->departmentService->saleRecordCount();
+        $data['department'] = $this->service->department();
+        $data['typeCount'] = $this->service->typeCount();
+        $data['categoryCount'] = $this->service->categoryCount();
+        $data['productCount'] = $this->service->productCount();
+        $data['productVariationCount'] = $this->service->productVariationCount();
+        $data['saleRecordCount'] = $this->service->saleRecordCount();
 
         return view('admin.department.content', $data);
     }
@@ -54,6 +54,6 @@ class DepartmentController extends Controller
      */
     public function saleRecordList()
     {
-        return $this->departmentService->saleRecordListQuery();
+        return $this->service->saleRecordListQuery();
     }
 }
