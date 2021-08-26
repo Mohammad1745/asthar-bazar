@@ -11,11 +11,11 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    private $dashboardService;
+    private $service;
 
-    public function __construct(DashboardService $dashboardService)
+    public function __construct(DashboardService $service)
     {
-        $this->dashboardService = $dashboardService;
+        $this->service = $service;
     }
 
     /**
@@ -27,8 +27,8 @@ class DashboardController extends Controller
         $data['menu'] = 'dashboard';
         $data['user'] = Auth::user();
         $data['sliderImage'] = asset('assets/images/home_slider_1.jpg');
-        $data['productVariations'] = $this->dashboardService->randomProductVariations();
-        $data['newCollectionDiscount'] = $this->dashboardService->newCollectionDiscount();
+        $data['productVariations'] = $this->service->randomProductVariations();
+        $data['newCollectionDiscount'] = $this->service->newCollectionDiscount();
 
         return view('admin.dashboard.content', $data);
     }

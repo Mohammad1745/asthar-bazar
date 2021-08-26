@@ -11,11 +11,11 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    private $dashboardService;
+    private $service;
 
-    public function __construct(DashboardService $dashboardService)
+    public function __construct(DashboardService $service)
     {
-        $this->dashboardService = $dashboardService;
+        $this->service = $service;
     }
 
     /**
