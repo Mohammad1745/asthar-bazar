@@ -18,84 +18,76 @@ use Illuminate\View\View;
 
 class CollectionController extends Controller
 {
-    private $collectionService;
+    private $service;
 
     /**
      * CollectionController constructor.
-     * @param CollectionService $collectionService
+     * @param CollectionService $service
      */
-    public function __construct(CollectionService $collectionService)
+    public function __construct (CollectionService $service)
     {
-        $this->collectionService = $collectionService;
+        $this->service = $service;
     }
 
     /**
      * @return Application|Factory|View
      */
-    public function collection()
+    public function collection ()
     {
         $data['base'] = 'dashboard';
         $data['menu'] = 'collection';
         $data['user'] = Auth::user();
-        $data['collections'] = $this->collectionService->collections();
+        $data['collections'] = $this->service->collections();
 
         return view('admin.collection.content', $data);
     }
 
     /**
-     * @return mixed
+     * @return array|JsonResponse|mixed
      */
-    public function collectionList()
+    public function collectionList ()
     {
-        return $this->collectionService->collectionListQuery();
+        return $this->service->collectionListQuery();
     }
 
     /**
      * @param StoreCollectionRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function store(StoreCollectionRequest $request)
+    public function store (StoreCollectionRequest $request): RedirectResponse
     {
-        $response = $this->collectionService->store($request);
-
-        return redirect(route('admin.collection'))->with($response['webResponse']);
+        return $this->webResponse( $this->service->store($request),'admin.collection');
     }
 
     /**
      * @param UpdateCollectionRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function update(UpdateCollectionRequest $request)
+    public function update (UpdateCollectionRequest $request): RedirectResponse
     {
-        $response = $this->collectionService->update($request);
-
-        return redirect(route('admin.collection'))->with($response['webResponse']);
+        return $this->webResponse( $this->service->update($request),'admin.collection');
     }
 
     /**
      * @param $encryptedCollectionId
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function delete($encryptedCollectionId)
+    public function delete ($encryptedCollectionId): RedirectResponse
     {
-        $response = $this->collectionService->delete($encryptedCollectionId);
-
-        return $response['success'] ?
-            redirect(route('admin.collection'))->with($response['webResponse']):
-            redirect()->back()->with($response['webResponse']);
+        return $this->webResponse( $this->service->delete($encryptedCollectionId),'admin.collection');
     }
 
     /**
      * @param $encryptedCollectionId
      * @return Application|Factory|View
      */
-    public function details($encryptedCollectionId)
+    public function details ($encryptedCollectionId)
     {
         $data['base'] = 'dashboard';
         $data['menu'] = 'collection';
         $data['user'] = Auth::user();
-        $data['collection'] = $this->collectionService->collection($encryptedCollectionId);
-        $data['productVariations'] = $this->collectionService->productVariations();
+        $data['collection'] = $this->service->collection($encryptedCollectionId);
+        $data['productVariations'] = $this->service->productVariations();
 
         return view('admin.collection.details', $data);
     }
@@ -104,13 +96,13 @@ class CollectionController extends Controller
      * @param $encryptedCollectionItemId
      * @return Application|Factory|View
      */
-    public function itemDetails($encryptedCollectionItemId)
+    public function itemDetails ($encryptedCollectionItemId)
     {
         $data['base'] = 'dashboard';
         $data['menu'] = 'collection';
         $data['user'] = Auth::user();
-        $data['collectionItem'] = $this->collectionService->collectionItem($encryptedCollectionItemId);
-        $data['productVariations'] = $this->collectionService->productVariations();
+        $data['collectionItem'] = $this->service->collectionItem($encryptedCollectionItemId);
+        $data['productVariations'] = $this->service->productVariations();
 
         return view('admin.collection.item', $data);
     }
@@ -119,58 +111,44 @@ class CollectionController extends Controller
      * @param $encryptedCollectionId
      * @return array|JsonResponse|mixed
      */
-    public function collectionItemList($encryptedCollectionId)
+    public function collectionItemList ($encryptedCollectionId)
     {
-        return $this->collectionService->collectionItemListQuery($encryptedCollectionId);
+        return $this->service->collectionItemListQuery($encryptedCollectionId);
     }
 
     /**
      * @param $encryptedCollectionId
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function refreshItem($encryptedCollectionId)
+    public function refreshItem ($encryptedCollectionId): RedirectResponse
     {
-        $response = $this->collectionService->refreshItem($encryptedCollectionId);
-
-        return $response['success'] ?
-            redirect(route('admin.collection'))->with($response['webResponse']) :
-            redirect()->back()->with($response['webResponse']);
+        return $this->webResponse( $this->service->refreshItem($encryptedCollectionId),'admin.collection');
     }
 
     /**
      * @param StoreCollectionItemRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function storeItem(StoreCollectionItemRequest $request)
+    public function storeItem(StoreCollectionItemRequest $request): RedirectResponse
     {
-        $response = $this->collectionService->storeItem($request);
-
-        return $response['success'] ?
-            redirect(route('admin.collection.details', encrypt($response['data']['collection_id'])))->with($response['webResponse']) :
-            redirect()->back()->with($response['webResponse']);
+        return $this->webResponse( $this->service->storeItem($request),'admin.collection');
     }
 
     /**
      * @param UpdateCollectionItemRequest $request
      * @return RedirectResponse
      */
-    public function updateItem(UpdateCollectionItemRequest $request)
+    public function updateItem(UpdateCollectionItemRequest $request): RedirectResponse
     {
-        $response = $this->collectionService->updateItem($request);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse( $this->service->updateItem($request));
     }
 
     /**
      * @param $encryptedCollectionItemId
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function deleteItem($encryptedCollectionItemId)
+    public function deleteItem($encryptedCollectionItemId): RedirectResponse
     {
-        $response = $this->collectionService->deleteItem($encryptedCollectionItemId);
-
-        return $response['success'] ?
-            redirect(route('admin.collection'))->with($response['webResponse']):
-            redirect()->back()->with($response['webResponse']);
+        return $this->webResponse( $this->service->deleteItem($encryptedCollectionItemId),'admin.collection');
     }
 }
