@@ -4,16 +4,15 @@
 namespace App\Modules\Dashboard\Services;
 
 
+use App\Http\Services\ResponseService;
 use App\Modules\Dashboard\Repositories\CollectionItemRepository;
 use App\Modules\Dashboard\Repositories\CollectionRepository;
 use App\Modules\Dashboard\Repositories\DepartmentOwnershipRepository;
 use App\Modules\Dashboard\Repositories\ProductVariationRepository;
 use Illuminate\Support\Facades\Auth;
 
-class DashboardService
+class DashboardService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $departmentOwnershipRepository;
     private $collectionRepository;
     private $collectionItemRepository;
@@ -30,15 +29,6 @@ class DashboardService
         $this->collectionRepository=$collectionRepository;
         $this->collectionItemRepository=$collectionItemRepository;
         $this->productVariationRepository=$productVariationRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
