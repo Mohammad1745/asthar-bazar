@@ -4,6 +4,7 @@
 namespace App\Modules\Contact\Services;
 
 
+use App\Http\Services\ResponseService;
 use App\Jobs\SendReplyToContactMessageJob;
 use App\Jobs\SendVerificationEmailJob;
 use App\Modules\Contact\Repositories\ContactMessageRepository;
@@ -11,10 +12,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class ContactMessageService
+class ContactMessageService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $contactMessageRepository;
 
     /**
@@ -24,43 +23,29 @@ class ContactMessageService
     public function __construct(ContactMessageRepository $contactMessageRepository)
     {
         $this->contactMessageRepository = $contactMessageRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function store($request) {
+    public function store(object $request): array
+    {
         try{
             $contactMessageData = $this->prepareContactMessageData($request);
             $this->contactMessageRepository->create($contactMessageData);
 
-            return [
-                'success' => true,
-                'message' => __('Message sent.'),
-                'webResponse' => [
-                    'success' => __('Message sent.')
-                ],
-            ];
+            return $this->response()->success(__('Message sent.'));
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    private function prepareContactMessageData($request)
+    private function prepareContactMessageData(object $request): array
     {
         return [
             'user_id' => Auth::user()->id,
@@ -72,10 +57,10 @@ class ContactMessageService
     }
 
     /**
-     * @param $encryptedContactMessageId
+     * @param string $encryptedContactMessageId
      * @return array
      */
-    public function message($encryptedContactMessageId)
+    public function message(string $encryptedContactMessageId): array
     {
         try{
             $where = ['contact_messages.id' => decrypt($encryptedContactMessageId)];
@@ -85,20 +70,17 @@ class ContactMessageService
                 $this->contactMessageRepository->update($where, $data);
             }
 
-            return [
-                'success' => true,
-                'data' => $message
-            ];
+            return $this->response($message->toArray())->success();
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function reply($request)
+    public function reply(object $request): array
     {
         try{
             DB::beginTransaction();
@@ -114,17 +96,11 @@ class ContactMessageService
             dispatch(new SendReplyToContactMessageJob($defaultName, $defaultEmail, $message, $request->message))->onQueue('email-send');
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => __('Message replied.'),
-                'webResponse' => [
-                    'success' => __('Message replied.')
-                ],
-            ];
+            return $this->response()->success('Message replied.');
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
