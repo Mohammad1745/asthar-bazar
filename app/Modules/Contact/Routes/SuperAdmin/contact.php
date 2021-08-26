@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 Route::get('contact', "ContactMessageController@contact")->name('superAdmin.contact');
 Route::get('contact/list', "ContactMessageController@contactMessageList")->name('superAdmin.contactMessage.list');
 Route::get('contact/details/{encryptedContactMessageId}', "ContactMessageController@details")->name('superAdmin.contactMessage.details');
