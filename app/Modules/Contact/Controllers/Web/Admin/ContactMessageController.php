@@ -50,16 +50,24 @@ class ContactMessageController extends Controller
     public function details($encryptedContactMessageId)
     {
         $response = $this->service->message($encryptedContactMessageId);
-        if($response['success']) {
-            $data['base'] = 'account';
-            $data['menu'] = 'contact';
-            $data['user'] = Auth::user();
-            $data['message'] = $response['data'];
 
-            return view('admin.contact.details', $data);
-        }else{
-            return redirect()->back()->with($response['webResponse']);
-        }
+        return $response['success'] ?
+            $this->viewDetails($response)
+            : redirect()->back()->with($response['message']);
+    }
+
+    /**
+     * @param array $response
+     * @return Application|Factory|View
+     */
+    private function viewDetails (array $response)
+    {
+        $data['base'] = 'account';
+        $data['menu'] = 'contact';
+        $data['user'] = Auth::user();
+        $data['message'] = $response['data'];
+
+        return view('admin.contact.details', $data);
     }
 
     /**
