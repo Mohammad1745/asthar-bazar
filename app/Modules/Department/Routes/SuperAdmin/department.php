@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 Route::get('department', "DepartmentController@department")->name('superAdmin.department');
 Route::get('department/list', "DepartmentController@departmentList")->name('superAdmin.department.list');
 Route::post('department/store', "DepartmentController@store")->name('superAdmin.department.store');
