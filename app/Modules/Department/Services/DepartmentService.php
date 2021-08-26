@@ -4,6 +4,7 @@
 namespace App\Modules\Department\Services;
 
 
+use App\Http\Services\ResponseService;
 use App\Modules\Department\Repositories\CategoryRepository;
 use App\Modules\Department\Repositories\CollectionRepository;
 use App\Modules\Department\Repositories\DepartmentOwnershipRepository;
@@ -18,10 +19,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class DepartmentService
+class DepartmentService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $departmentRepository;
     private $departmentOwnershipRepository;
     private $departmentTransactionRepository;
@@ -69,15 +68,6 @@ class DepartmentService
         $this->categoryRepository = $categoryRepository;
         $this->productRepository = $productRepository;
         $this->productVariationRepository = $productVariationRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
@@ -200,10 +190,11 @@ class DepartmentService
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function store($request) {
+    public function store(object $request): array
+    {
         try{
             DB::beginTransaction();
             $departmentData = $this->prepareDepartmentData($request);
@@ -214,18 +205,11 @@ class DepartmentService
             $this->collectionRepository->create($collectionData);
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => __('Department has been added.'),
-                'data' => $department,
-                'webResponse' => [
-                    'success' => __('Department has been added.')
-                ],
-            ];
+            return $this->response($department->toArray())->success('Department has been added.');
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
@@ -233,7 +217,7 @@ class DepartmentService
      * @param $department
      * @return array
      */
-    private function prepareCollectionData($department)
+    private function prepareCollectionData($department): array
     {
         return [
             'title' => 'new',
@@ -244,10 +228,11 @@ class DepartmentService
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function update($request) {
+    public function update(object $request): array
+    {
         try{
             DB::beginTransaction();
             $where = ['id' => $request->id];
@@ -259,26 +244,19 @@ class DepartmentService
             $this->departmentOwnershipRepository->update($where, $departmentOwnershipData);
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => __('Department has been updated.'),
-                'data' => $department,
-                'webResponse' => [
-                    'success' => __('Department has been updated.')
-                ],
-            ];
+            return $this->response()->success('Department has been updated');
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    private function prepareDepartmentData($request)
+    private function prepareDepartmentData(object $request): array
     {
         return [
             'title' => $request->title,
@@ -292,7 +270,7 @@ class DepartmentService
      * @param $request
      * @return array
      */
-    private function prepareDepartmentOwnershipData($department, $request)
+    private function prepareDepartmentOwnershipData($department, $request): array
     {
         return [
             'user_id' => $request->owner_id,
@@ -302,58 +280,44 @@ class DepartmentService
     }
 
     /**
-     * @param $encryptedDepartmentId
+     * @param string $encryptedDepartmentId
      * @return array
      */
-    public function activate($encryptedDepartmentId)
+    public function activate(string $encryptedDepartmentId): array
     {
         try{
             $where = ['department_id' => decrypt($encryptedDepartmentId)];
             $data = ['status' => DEPARTMENT_ACTIVE_STATUS];
             $this->departmentOwnershipRepository->update($where, $data);
 
-            return [
-                'success' => true,
-                'message' => 'Department has been activated.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Department has been activated.'
-                ],
-            ];
-        }catch (\Exception $e){
-            return $this->errorResponse;
+            return $this->response()->success('Department has been activated');
+        }catch (\Exception $exception){
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $encryptedDepartmentId
+     * @param string $encryptedDepartmentId
      * @return array
      */
-    public function deactivate($encryptedDepartmentId)
+    public function deactivate(string $encryptedDepartmentId): array
     {
         try{
             $where = ['department_id' => decrypt($encryptedDepartmentId)];
             $data = ['status' => DEPARTMENT_INACTIVE_STATUS];
             $this->departmentOwnershipRepository->update($where, $data);
 
-            return [
-                'success' => true,
-                'message' => 'Department has been deactivated.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Department has been deactivated.'
-                ],
-            ];
-        }catch (\Exception $e){
-            return $this->errorResponse;
+            return $this->response()->success('Department has been deactivated');
+        }catch (\Exception $exception){
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $encryptedDepartmentId
+     * @param string $encryptedDepartmentId
      * @return array
      */
-    public function paymentDone($encryptedDepartmentId)
+    public function paymentDone(string $encryptedDepartmentId): array
     {
         try{
             $where = [
@@ -363,16 +327,9 @@ class DepartmentService
             $data = ['status' => false];
             $this->departmentTransactionRepository->update($where, $data);
 
-            return [
-                'success' => true,
-                'message' => 'Department Payment Done.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Department Payment Done.'
-                ],
-            ];
-        }catch (\Exception $e){
-            return $this->errorResponse;
+            return $this->response()->success('Department Payment Done.');
+        }catch (\Exception $exception){
+            return $this->response()->error($exception->getMessage());
         }
     }
 
