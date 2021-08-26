@@ -14,11 +14,11 @@ use Illuminate\View\View;
 
 class ContactMessageController extends Controller
 {
-    private $contactMessageService;
+    private $service;
 
-    public function __construct(ContactMessageService $contactMessageService)
+    public function __construct(ContactMessageService $service)
     {
-        $this->contactMessageService = $contactMessageService;
+        $this->service = $service;
     }
 
     /**
@@ -35,12 +35,10 @@ class ContactMessageController extends Controller
 
     /**
      * @param StoreContactMessageRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function store(StoreContactMessageRequest $request)
+    public function store(StoreContactMessageRequest $request): RedirectResponse
     {
-        $response = $this->contactMessageService->store($request);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->store($request));
     }
 }

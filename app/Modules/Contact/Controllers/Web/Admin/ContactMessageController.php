@@ -16,11 +16,11 @@ use Illuminate\View\View;
 
 class ContactMessageController extends Controller
 {
-    private $contactMessageService;
+    private $service;
 
-    public function __construct(ContactMessageService $contactMessageService)
+    public function __construct(ContactMessageService $service)
     {
-        $this->contactMessageService = $contactMessageService;
+        $this->service = $service;
     }
 
     /**
@@ -40,7 +40,7 @@ class ContactMessageController extends Controller
      */
     public function contactMessageList()
     {
-        return $this->contactMessageService->contactMessageListQuery();
+        return $this->service->contactMessageListQuery();
     }
 
     /**
@@ -49,7 +49,7 @@ class ContactMessageController extends Controller
      */
     public function details($encryptedContactMessageId)
     {
-        $response = $this->contactMessageService->message($encryptedContactMessageId);
+        $response = $this->service->message($encryptedContactMessageId);
         if($response['success']) {
             $data['base'] = 'account';
             $data['menu'] = 'contact';
@@ -66,10 +66,8 @@ class ContactMessageController extends Controller
      * @param ReplyContactMessageRequest $request
      * @return RedirectResponse
      */
-    public function reply(ReplyContactMessageRequest $request)
+    public function reply(ReplyContactMessageRequest $request): RedirectResponse
     {
-        $response = $this->contactMessageService->reply($request);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->reply($request));
     }
 }
