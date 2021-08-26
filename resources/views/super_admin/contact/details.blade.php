@@ -41,28 +41,28 @@
                                 <ul class="main_extra_total_list">
                                     <li class="d-flex flex-row align-items-center justify-content-start">
                                         <div class="main_extra_total_title">Name</div>
-                                        <div class="main_extra_total_value ml-auto">{{$message->first_name.' '.$message->last_name}}</div>
+                                        <div class="main_extra_total_value ml-auto">{{$message['first_name'].' '.$message['last_name']}}</div>
                                     </li>
                                     <li class="d-flex flex-row align-items-center justify-content-start">
                                         <div class="main_extra_total_title">Email</div>
-                                        <div class="main_extra_total_value ml-auto">{{$message->email}}</div>
+                                        <div class="main_extra_total_value ml-auto">{{$message['email']}}</div>
                                     </li>
                                     <li class="d-flex flex-row align-items-center justify-content-start">
                                         <div class="main_extra_total_title">To</div>
-                                        <div class="main_extra_total_value ml-auto">{{$message->to}}</div>
+                                        <div class="main_extra_total_value ml-auto">{{$message['to']}}</div>
                                     </li>
-                                    @if (!is_null($message->replied_by))
+                                    @if (!is_null($message['replied_by']))
                                         <li class="d-flex flex-row align-items-center justify-content-start">
                                             <div class="main_extra_total_title">Replied By</div>
-                                            <div class="main_extra_total_value ml-auto">{{$message->replied_by}}</div>
+                                            <div class="main_extra_total_value ml-auto">{{$message['replied_by']}}</div>
                                         </li>
                                     @endif
                                     <li class="main_extra_total_value ml-auto text-justify">
-                                        <div class="main_extra_total_title">{{$message->message}}</div>
+                                        <div class="main_extra_total_title">{{$message['message']}}</div>
                                     </li>
-                                    @if (!is_null($message->replied_by))
+                                    @if (!is_null($message['replied_by']))
                                         <li class="main_extra_total_value ml-auto text-justify">
-                                            <div class="main_extra_total_title">{{$message->reply}}</div>
+                                            <div class="main_extra_total_title">{{$message['reply']}}</div>
                                         </li>
                                     @endif
                                 </ul>
@@ -71,7 +71,7 @@
                     </div>
                 </div>
 
-                @if (is_null($message->replied_by))
+                @if (is_null($message['replied_by']))
                     <!-- Buttons -->
                     <div class="main_buttons d-flex flex-row align-items-start justify-content-start">
                         <div class="main_buttons_inner ml-auto d-flex flex-row align-items-start justify-content-start flex-wrap">
@@ -91,7 +91,7 @@
                                 <div class="main_extra_title">Reply</div>
                                 <div class="main_form_container">
                                     {{ Form::open(['route' => 'superAdmin.contactMessage.reply', 'method' => 'post', 'id' => 'contact_message_form', 'class' => 'main_form']) }}
-                                    <input type="hidden" name="message_id" value="{{$message->id}}">
+                                    <input type="hidden" name="message_id" value="{{$message['id']}}">
                                     <div>
                                         <!-- Message -->
                                         <label for="message">Message</label>
