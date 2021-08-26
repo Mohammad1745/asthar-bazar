@@ -4,6 +4,7 @@
 namespace App\Modules\Collection\Services;
 
 
+use App\Http\Services\ResponseService;
 use App\Modules\Collection\Repositories\CollectionItemRepository;
 use App\Modules\Collection\Repositories\CollectionRepository;
 use App\Modules\Collection\Repositories\DepartmentOwnershipRepository;
@@ -15,10 +16,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class CollectionService
+class CollectionService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $departmentRepository;
     private $departmentOwnershipRepository;
     private $typeRepository;
@@ -50,15 +49,6 @@ class CollectionService
         $this->productVariationRepository = $productVariationRepository;
         $this->collectionRepository = $collectionRepository;
         $this->collectionItemRepository = $collectionItemRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
@@ -74,10 +64,10 @@ class CollectionService
     }
 
     /**
-     * @param $encryptedCollectionId
+     * @param string $encryptedCollectionId
      * @return mixed
      */
-    public function collection($encryptedCollectionId)
+    public function collection(string $encryptedCollectionId)
     {
         $where = ['id' => decrypt($encryptedCollectionId)];
 
@@ -85,10 +75,10 @@ class CollectionService
     }
 
     /**
-     * @param $encryptedCollectionItemId
+     * @param string $encryptedCollectionItemId
      * @return mixed
      */
-    public function collectionItem($encryptedCollectionItemId)
+    public function collectionItem(string $encryptedCollectionItemId)
     {
         $where = ['collection_items.id' => decrypt($encryptedCollectionItemId)];
 
@@ -109,55 +99,45 @@ class CollectionService
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function store($request) {
+    public function store(object $request): array
+    {
         try{
             $where = ['user_id' => Auth::user()->id];
             $collectionData = $this->prepareCollectionData($request);
             $collectionData['department_id'] = $this->departmentOwnershipRepository->whereFirst($where)->department_id;
             $this->collectionRepository->create($collectionData);
 
-            return [
-                'success' => true,
-                'message' => __('Collection has been added.'),
-                'webResponse' => [
-                    'success' => __('Collection has been added.')
-                ],
-            ];
+            return $this->response()->success('Collection added successfully.');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return  $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function update($request) {
+    public function update(object $request): array
+    {
         try{
             $where = ['id' => $request->id];
             $collectionData = $this->prepareCollectionData($request);
             $this->collectionRepository->update($where, $collectionData);
 
-            return [
-                'success' => true,
-                'message' => __('Collection has been updated.'),
-                'webResponse' => [
-                    'success' => __('Collection has been updated.')
-                ],
-            ];
+            return $this->response()->success('Collection updated successfully.');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return  $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function prepareCollectionData($request)
+    public function prepareCollectionData(object $request): array
     {
         return [
             'title' => $request->title,
@@ -167,33 +147,27 @@ class CollectionService
     }
 
     /**
-     * @param $encryptedCollectionId
+     * @param string $encryptedCollectionId
      * @return array
      */
-    public function delete($encryptedCollectionId)
+    public function delete(string $encryptedCollectionId): array
     {
         try{
             $where = ['id' => decrypt($encryptedCollectionId)];
             $this->collectionRepository->deleteWhere($where);
 
-            return [
-                'success' => true,
-                'message' => 'Collection has been deleted.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Collection has been deleted.'
-                ],
-            ];
-        }catch (\Exception $e){
-            return $this->errorResponse;
+            return $this->response()->success('Collection deleted successfully.');
+        }catch (\Exception $exception){
+            return  $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $encryptedCollectionId
+     * @param string $encryptedCollectionId
      * @return array
      */
-    public function refreshItem($encryptedCollectionId) {
+    public function refreshItem(string $encryptedCollectionId): array
+    {
         try{
             DB::beginTransaction();
             $where = ['id' => decrypt($encryptedCollectionId)];
@@ -206,17 +180,11 @@ class CollectionService
             }
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => __('Collection Item has been added.'),
-                'webResponse' => [
-                    'success' => __('Collection Item has been added.')
-                ],
-            ];
+            return $this->response()->success('Collection Item has been added.');
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return  $this->response()->error($exception->getMessage());
         }
     }
 
@@ -226,7 +194,7 @@ class CollectionService
      * @return array
      * @throws \Exception
      */
-    public function prepareNewCollectionItemData($productVariations, $collection)
+    public function prepareNewCollectionItemData($productVariations, $collection): array
     {
         $newCollectionItems = [];
         foreach ($productVariations as $productVariation){
@@ -251,36 +219,31 @@ class CollectionService
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function storeItem($request) {
+    public function storeItem(object $request): array
+    {
         try{
             DB::beginTransaction();
             $collectionItemData = $this->prepareCollectionItemData($request);
             $this->collectionItemRepository->create($collectionItemData);
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => __('Collection Item has been added.'),
-                'data' => $collectionItemData,
-                'webResponse' => [
-                    'success' => __('Collection Item has been added.')
-                ],
-            ];
+            return $this->response($collectionItemData)->success('Collection Item has been added.');
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return  $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function updateItem($request) {
+    public function updateItem(object $request): array
+    {
         try{
             DB::beginTransaction();
             $where = ['id' => $request->id];
@@ -288,25 +251,19 @@ class CollectionService
             $this->collectionItemRepository->update($where, $collectionItemData);
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => __('Collection Item has been updated.'),
-                'webResponse' => [
-                    'success' => __('Collection Item has been updated.')
-                ],
-            ];
+            return $this->response()->success('Collection Item has been updated.');
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return  $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function prepareCollectionItemData($request)
+    public function prepareCollectionItemData(object $request): array
     {
         $where = ['id' => $request->product_variation_id];
         $productVariation = $this->productVariationRepository->whereLast($where);
@@ -323,25 +280,19 @@ class CollectionService
     }
 
     /**
-     * @param $encryptedCollectionItemId
+     * @param string $encryptedCollectionItemId
      * @return array
      */
-    public function deleteItem($encryptedCollectionItemId)
+    public function deleteItem(string $encryptedCollectionItemId): array
     {
         try{
             $where = ['id' => decrypt($encryptedCollectionItemId)];
             $this->collectionItemRepository->deleteWhere($where);
 
-            return [
-                'success' => true,
-                'message' => 'Collection Item has been deleted.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Collection Item has been deleted.'
-                ],
-            ];
-        }catch (\Exception $e){
-            return $this->errorResponse;
+            return $this->response()->success('Collection Item has been deleted.');
+        }catch (\Exception $exception){
+
+            return  $this->response()->error($exception->getMessage());
         }
     }
 
