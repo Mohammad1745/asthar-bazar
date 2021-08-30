@@ -11,15 +11,15 @@ use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-    private $homeService;
+    private $service;
 
     /**
      * HomeController constructor.
-     * @param HomeService $homeService
+     * @param HomeService $service
      */
-    public function __construct(HomeService $homeService)
+    public function __construct(HomeService $service)
     {
-        $this->homeService = $homeService;
+        $this->service = $service;
     }
 
     /**
@@ -31,8 +31,8 @@ class HomeController extends Controller
         $data['menu'] = 'home';
         $data['user'] = Auth::user();
         $data['sliderImage'] = asset('assets/images/home_slider_1.jpg');
-        $data['productVariations'] = $this->homeService->randomProductVariations();
-        $data['maxDiscount'] = $this->homeService->maxDiscount();
+        $data['productVariations'] = $this->service->randomProductVariations();
+        $data['maxDiscount'] = $this->service->maxDiscount();
 
         return view('user.home.content', $data);
     }
