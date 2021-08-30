@@ -11,8 +11,6 @@ use App\Modules\Home\Repositories\TypeRepository;
 
 class HomeService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $collectionRepository;
     private $collectionItemRepository;
     private $typeRepository;
@@ -40,15 +38,6 @@ class HomeService
         $this->typeRepository = $typeRepository;
         $this->productRepository = $productRepository;
         $this->productVariationRepository = $productVariationRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
