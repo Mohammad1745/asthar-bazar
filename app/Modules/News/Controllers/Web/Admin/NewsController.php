@@ -15,11 +15,11 @@ use Illuminate\View\View;
 
 class NewsController extends Controller
 {
-    private $newsService;
+    private $service;
 
-    public function __construct(NewsService $newsService)
+    public function __construct(NewsService $service)
     {
-        $this->newsService = $newsService;
+        $this->service = $service;
     }
 
     /**
@@ -39,7 +39,7 @@ class NewsController extends Controller
      */
     public function newsList()
     {
-        return $this->newsService->newsListQuery();
+        return $this->service->newsListQuery();
     }
 
     /**
@@ -51,43 +51,35 @@ class NewsController extends Controller
         $data['base'] = 'account';
         $data['menu'] = 'news';
         $data['user'] = Auth::user();
-        $data['news'] = $this->newsService->details($encryptedNewsId);
+        $data['news'] = $this->service->details($encryptedNewsId);
 
         return view('admin.news.details', $data);
     }
 
     /**
      * @param StoreNewsRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function store(StoreNewsRequest $request)
+    public function store(StoreNewsRequest $request): RedirectResponse
     {
-        $response = $this->newsService->store($request);
-
-        return redirect(route('admin.news'))->with($response['webResponse']);
+        return $this->webResponse($this->service->store($request), 'admin.news');
     }
 
     /**
      * @param UpdateNewsRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function update(UpdateNewsRequest $request)
+    public function update(UpdateNewsRequest $request): RedirectResponse
     {
-        $response = $this->newsService->update($request);
-
-        return redirect(route('admin.news'))->with($response['webResponse']);
+        return $this->webResponse($this->service->update($request), 'admin.news');
     }
 
     /**
-     * @param $encryptedNewsId
-     * @return Application|RedirectResponse|Redirector
+     * @param string $encryptedNewsId
+     * @return RedirectResponse
      */
-    public function delete($encryptedNewsId)
+    public function delete(string $encryptedNewsId): RedirectResponse
     {
-        $response = $this->newsService->delete($encryptedNewsId);
-
-        return $response['success'] ?
-            redirect(route('admin.news'))->with($response['webResponse']):
-            redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->delete($encryptedNewsId), 'admin.news');
     }
 }

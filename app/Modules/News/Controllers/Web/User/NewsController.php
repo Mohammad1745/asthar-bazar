@@ -15,11 +15,11 @@ use Illuminate\View\View;
 
 class NewsController extends Controller
 {
-    private $newsService;
+    private $service;
 
-    public function __construct(NewsService $newsService)
+    public function __construct(NewsService $service)
     {
-        $this->newsService = $newsService;
+        $this->service = $service;
     }
 
     /**
@@ -30,7 +30,7 @@ class NewsController extends Controller
         $data['base'] = 'home';
         $data['menu'] = 'news';
         $data['user'] = Auth::user();
-        $data['allNews'] = $this->newsService->allNews();
+        $data['allNews'] = $this->service->allNews();
 
         return view('user.news.details', $data);
     }
