@@ -15,15 +15,15 @@ use Illuminate\View\View;
 
 class FAQController extends Controller
 {
-    private $faqService;
+    private $service;
 
     /**
      * FAQController constructor.
-     * @param FAQService $faqService
+     * @param FAQService $service
      */
-    public function __construct(FAQService $faqService)
+    public function __construct(FAQService $service)
     {
-        $this->faqService = $faqService;
+        $this->service = $service;
     }
 
     /**

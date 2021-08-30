@@ -15,15 +15,15 @@ use Illuminate\View\View;
 
 class FAQController extends Controller
 {
-    private $faqService;
+    private $service;
 
     /**
      * FAQController constructor.
-     * @param FAQService $faqService
+     * @param FAQService $service
      */
-    public function __construct(FAQService $faqService)
+    public function __construct(FAQService $service)
     {
-        $this->faqService = $faqService;
+        $this->service = $service;
     }
 
     /**
@@ -41,12 +41,10 @@ class FAQController extends Controller
 
     /**
      * @param UpdateFAQRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function update(UpdateFAQRequest $request)
+    public function update(UpdateFAQRequest $request): RedirectResponse
     {
-        $response = $this->faqService->saveSettings($request);
-
-        return redirect(route('superAdmin.faq'))->with($response['webResponse']);
+        return $this->webResponse($this->service->saveSettings($request), 'superAdmin.faq');
     }
 }
