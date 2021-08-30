@@ -4,15 +4,14 @@
 namespace App\Modules\News\Services;
 
 
+use App\Http\Services\ResponseService;
 use App\Modules\News\Repositories\NewsRepository;
 use App\Modules\News\Repositories\DepartmentOwnershipRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
-class NewsService
+class NewsService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $departmentOwnershipRepository;
     private $newsRepository;
 
@@ -25,15 +24,6 @@ class NewsService
     {
         $this->departmentOwnershipRepository = $departmentOwnershipRepository;
         $this->newsRepository = $newsRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
@@ -45,10 +35,10 @@ class NewsService
     }
 
     /**
-     * @param $encryptedNewsId
+     * @param string $encryptedNewsId
      * @return mixed
      */
-    public function details($encryptedNewsId)
+    public function details(string $encryptedNewsId)
     {
         $where = ['id' => decrypt($encryptedNewsId)];
 
@@ -56,38 +46,33 @@ class NewsService
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function store($request) {
+    public function store(object $request): array
+    {
         try{
             $where = ['department_ownerships.user_id' => Auth::user()->id];
             $departmentOwnership = $this->departmentOwnershipRepository->details($where);
-            if(empty($departmentOwnership)){
-                $newsData = $this->prepareNewsData('Company', $request);
-            }else{
-                $newsData = $this->prepareNewsData($departmentOwnership->department_title, $request);
-            }
+
+            $newsData = empty($departmentOwnership) ?
+                $this->prepareNewsData('Company', $request)
+                : $this->prepareNewsData($departmentOwnership->department_title, $request);
+
             $this->newsRepository->create($newsData);
 
-            return [
-                'success' => true,
-                'message' => __('News has been added.'),
-                'webResponse' => [
-                    'success' => __('News has been added.')
-                ],
-            ];
+            return $this->response()->success('News has been added.');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $departmentTitle
-     * @param $request
+     * @param string $departmentTitle
+     * @param object $request
      * @return array
      */
-    private function prepareNewsData($departmentTitle, $request)
+    private function prepareNewsData(string $departmentTitle, object $request): array
     {
         return [
             'user_id' => Auth::user()->id,
@@ -98,39 +83,34 @@ class NewsService
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function update($request) {
+    public function update(object $request): array
+    {
         try{
             $where = ['department_ownerships.user_id' => Auth::user()->id];
             $departmentOwnership = $this->departmentOwnershipRepository->details($where);
             $where = ['id' => $request->id];
-            if(empty($departmentOwnership)){
-                $newsData = $this->prepareUpdatedNewsData('Company', $request);
-            }else{
-                $newsData = $this->prepareUpdatedNewsData($departmentOwnership->department_title, $request);
-            }
+
+            $newsData = empty($departmentOwnership) ?
+                $this->prepareUpdatedNewsData('Company', $request)
+                : $this->prepareUpdatedNewsData($departmentOwnership->department_title, $request);
+
             $this->newsRepository->update($where, $newsData);
 
-            return [
-                'success' => true,
-                'message' => __('News has been updated.'),
-                'webResponse' => [
-                    'success' => __('News has been updated.')
-                ],
-            ];
+            return $this->response()->success('News has been updated.');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $departmentTitle
-     * @param $request
+     * @param string $departmentTitle
+     * @param object $request
      * @return array
      */
-    private function prepareUpdatedNewsData($departmentTitle, $request)
+    private function prepareUpdatedNewsData(string $departmentTitle, object $request): array
     {
         $preparedData = [
             'user_id' => Auth::user()->id,
@@ -147,25 +127,18 @@ class NewsService
     }
 
     /**
-     * @param $encryptedNewsId
+     * @param string $encryptedNewsId
      * @return array
      */
-    public function delete($encryptedNewsId)
+    public function delete(string $encryptedNewsId): array
     {
         try{
             $where = ['id' => decrypt($encryptedNewsId)];
             $this->newsRepository->deleteWhere($where);
 
-            return [
-                'success' => true,
-                'message' => 'News has been deleted.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'News has been deleted.'
-                ],
-            ];
-        }catch (\Exception $e){
-            return $this->errorResponse;
+            return $this->response()->success('News has been deleted.');
+        }catch (\Exception $exception){
+            return $this->response()->error($exception->getMessage());
         }
     }
 
