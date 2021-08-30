@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 Route::get('news', "NewsController@news")->name('admin.news');
 Route::get('news/list', "NewsController@newsList")->name('admin.news.list');
 Route::post('news/store', "NewsController@store")->name('admin.news.store');
