@@ -4,6 +4,7 @@
 namespace App\Modules\Order\Services;
 
 
+use App\Http\Services\ResponseService;
 use App\Modules\Order\Repositories\CartDetailsRepository;
 use App\Modules\Order\Repositories\CartRepository;
 use App\Modules\Order\Repositories\DepartmentRepository;
@@ -24,10 +25,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use mysql_xdevapi\Exception;
 
-class OrderService
+class OrderService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $orderRepository;
     private $userWalletRepository;
     private $referralUserRepository;
@@ -91,21 +90,12 @@ class OrderService
         $this->departmentRepository = $departmentRepository;
         $this->departmentTransactionRepository = $departmentTransactionRepository;
         $this->saleRecordRepository = $saleRecordRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
      * @return array
      */
-    public function orders()
+    public function orders(): array
     {
         $user = Auth::user();
         $where = ['user_id' => $user->id];
@@ -113,10 +103,10 @@ class OrderService
     }
 
     /**
-     * @param $encryptedOrderId
+     * @param string $encryptedOrderId
      * @return mixed
      */
-    public function order($encryptedOrderId)
+    public function order(string $encryptedOrderId)
     {
         $where = ['id' => decrypt($encryptedOrderId)];
 
@@ -125,10 +115,10 @@ class OrderService
 
 
     /**
-     * @param $encryptedOrderId
+     * @param string $encryptedOrderId
      * @return mixed
      */
-    public function orderDetails($encryptedOrderId)
+    public function orderDetails(string $encryptedOrderId)
     {
         $where = ['order_id' => decrypt($encryptedOrderId)];
 
@@ -137,10 +127,10 @@ class OrderService
 
 
     /**
-     * @param $encryptedOrderId
+     * @param string $encryptedOrderId
      * @return mixed
      */
-    public function orderPayments($encryptedOrderId)
+    public function orderPayments(string $encryptedOrderId)
     {
         $where = ['order_id' => decrypt($encryptedOrderId)];
 
@@ -149,10 +139,10 @@ class OrderService
 
 
     /**
-     * @param $encryptedOrderId
+     * @param string $encryptedOrderId
      * @return mixed
      */
-    public function orderCharges($encryptedOrderId)
+    public function orderCharges(string $encryptedOrderId)
     {
         $where = ['order_id' => decrypt($encryptedOrderId)];
 
@@ -161,10 +151,10 @@ class OrderService
 
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function storeCharge($request)
+    public function storeCharge(object $request): array
     {
         try {
             DB::beginTransaction();
@@ -183,26 +173,19 @@ class OrderService
             $this->orderRepository->update($where, $orderData);
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => 'Order Charges Added.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Order Charges Added.',
-                ],
-            ];
+            return $this->response()->success('Order Charges Added');
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    private function prepareChargesData($request)
+    private function prepareChargesData(object $request): array
     {
         $preparedData = [];
         foreach ($request->title as $key => $title){
@@ -219,10 +202,10 @@ class OrderService
     }
 
     /**
-     * @param $encryptedOrderId
+     * @param string $encryptedOrderId
      * @return array
      */
-    public function makePaymentDone($encryptedOrderId)
+    public function makePaymentDone(string $encryptedOrderId): array
     {
         try {
             DB::beginTransaction();
@@ -243,26 +226,19 @@ class OrderService
             $this->orderRepository->update($where, $orderData);
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => 'Payment Status Done.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Payment Status Done.',
-                ],
-            ];
+            return $this->response()->success('Payment Status Done.');
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $encryptedOrderId
+     * @param string $encryptedOrderId
      * @return array
      */
-    public function makeOrderComplete($encryptedOrderId)
+    public function makeOrderComplete(string $encryptedOrderId) : array
     {
         try {
             DB::beginTransaction();
@@ -278,29 +254,22 @@ class OrderService
                 $this->storeSaleRecord($order);
                 DB::commit();
 
-                return [
-                    'success' => true,
-                    'message' => 'Order Completed.',
-                    'data' => [],
-                    'webResponse' => [
-                        'success' => 'Order Completed.',
-                    ],
-                ];
+                return $this->response()->success('Order completed successfully.');
             }else{
-                return $this->errorResponse;
+                return $this->response()->error('Payment not completed.');
             }
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
      * @param $order
-     * @return mixed
+     * @return array
      */
-    private function prepareDepartmentTransactionData($order)
+    private function prepareDepartmentTransactionData($order): array
     {
         $preparedData = [];
         $where = ['title' => 'wallet'];
@@ -401,10 +370,10 @@ class OrderService
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function placeOrder($request)
+    public function placeOrder(object $request): array
     {
         try{
             DB::beginTransaction();
@@ -434,18 +403,11 @@ class OrderService
             $this->cartRepository->deleteWhere($where);
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => 'Order Placed.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Order Placed.',
-                ],
-            ];
+            return $this->response()->success('Order Placed');
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
@@ -454,7 +416,7 @@ class OrderService
      * @param $cart
      * @return array
      */
-    private function prepareOrderData($request, $cart)
+    private function prepareOrderData($request, $cart): array
     {
         return [
             'user_id' => Auth::user()->id,
@@ -488,7 +450,7 @@ class OrderService
      * @param $totalWeight
      * @return array
      */
-    private function prepareUpdatedOrderData($order, $cart, $request, $totalWeight)
+    private function prepareUpdatedOrderData($order, $cart, $request, $totalWeight): array
     {
         $preparedData = [
             'order_code' => $order->order_code + $order->id,
@@ -518,7 +480,7 @@ class OrderService
      * @param $cartDetail
      * @return array
      */
-    private function prepareOrderDetailData($orderId, $cartDetail)
+    private function prepareOrderDetailData($orderId, $cartDetail): array
     {
         $where = ['id' => $cartDetail->product_variation_id];
         $productVariation = $this->productVariationRepository->whereLast($where);
