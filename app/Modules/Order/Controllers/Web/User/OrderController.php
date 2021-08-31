@@ -13,21 +13,24 @@ use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    private $orderService;
+    private $service;
 
-    public function __construct(OrderService $orderService)
+    /**
+     * @param OrderService $service
+     */
+    public function __construct(OrderService $service)
     {
-        $this->orderService = $orderService;
+        $this->service = $service;
     }
     /**
-     * @return Application|Factory|RedirectResponse|View
+     * @return Application|Factory|View
      */
     public function order()
     {
         $data['base'] = 'account';
         $data['menu'] = 'order';
         $data['user'] = Auth::user();
-        $data['orders'] = $this->orderService->orders();
+        $data['orders'] = $this->service->orders();
 
         return view('user.order.content', $data);
     }
@@ -37,35 +40,31 @@ class OrderController extends Controller
      */
     public function orderList()
     {
-        return $this->orderService->orderListQuery();
+        return $this->service->orderListQuery();
     }
 
     /**
      * @param PlaceOrderRequestRequest $request
      * @return RedirectResponse
      */
-    public function placeOrder(PlaceOrderRequestRequest $request)
+    public function placeOrder(PlaceOrderRequestRequest $request): RedirectResponse
     {
-        $response = $this->orderService->placeOrder($request);
-
-        return $response['success'] ?
-            redirect(route('order'))->with($response['webResponse']):
-            redirect()->back()->with($response['webResponse']);
+        return $this->webResponse( $this->service->placeOrder($request), 'order');
     }
 
     /**
-     * @param $encryptedOrderId
+     * @param string $encryptedOrderId
      * @return Application|Factory|View
      */
-    public function orderDetails($encryptedOrderId)
+    public function orderDetails(string $encryptedOrderId)
     {
         $data['base'] = 'account';
         $data['menu'] = 'order';
         $data['user'] = Auth::user();
-        $data['order'] = $this->orderService->order($encryptedOrderId);
-        $data['orderDetails'] = $this->orderService->orderDetails($encryptedOrderId);
-        $data['orderPayments'] = $this->orderService->orderPayments($encryptedOrderId);
-        $data['orderCharges'] = $this->orderService->orderCharges($encryptedOrderId);
+        $data['order'] = $this->service->order($encryptedOrderId);
+        $data['orderDetails'] = $this->service->orderDetails($encryptedOrderId);
+        $data['orderPayments'] = $this->service->orderPayments($encryptedOrderId);
+        $data['orderCharges'] = $this->service->orderCharges($encryptedOrderId);
 
         return view('user.order.details', $data);
     }

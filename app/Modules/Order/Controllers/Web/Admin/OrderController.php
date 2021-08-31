@@ -14,14 +14,17 @@ use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    private $orderService;
+    private $service;
 
-    public function __construct(OrderService $orderService)
+    /**
+     * @param OrderService $service
+     */
+    public function __construct(OrderService $service)
     {
-        $this->orderService = $orderService;
+        $this->service = $service;
     }
     /**
-     * @return Application|Factory|RedirectResponse|View
+     * @return Application|Factory|View
      */
     public function order()
     {
@@ -37,7 +40,7 @@ class OrderController extends Controller
      */
     public function orderList()
     {
-        return $this->orderService->allOrderListQuery();
+        return $this->service->allOrderListQuery();
     }
 
     /**
@@ -49,10 +52,10 @@ class OrderController extends Controller
         $data['base'] = 'department';
         $data['menu'] = 'order';
         $data['user'] = Auth::user();
-        $data['order'] = $this->orderService->order($encryptedOrderId);
-        $data['orderDetails'] = $this->orderService->orderDetails($encryptedOrderId);
-        $data['orderPayments'] = $this->orderService->orderPayments($encryptedOrderId);
-        $data['orderCharges'] = $this->orderService->orderCharges($encryptedOrderId);
+        $data['order'] = $this->service->order($encryptedOrderId);
+        $data['orderDetails'] = $this->service->orderDetails($encryptedOrderId);
+        $data['orderPayments'] = $this->service->orderPayments($encryptedOrderId);
+        $data['orderCharges'] = $this->service->orderCharges($encryptedOrderId);
 
         return view('admin.order.details', $data);
     }
@@ -61,32 +64,26 @@ class OrderController extends Controller
      * @param StoreChargeRequest $request
      * @return RedirectResponse
      */
-    public function storeCharge(StoreChargeRequest $request)
+    public function storeCharge(StoreChargeRequest $request): RedirectResponse
     {
-        $response = $this->orderService->storeCharge($request);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->storeCharge($request));
     }
 
     /**
-     * @param $encryptedOrderId
+     * @param string $encryptedOrderId
      * @return RedirectResponse
      */
-    public function donePayment($encryptedOrderId)
+    public function donePayment(string $encryptedOrderId): RedirectResponse
     {
-        $response = $this->orderService->makePaymentDone($encryptedOrderId);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->makePaymentDone($encryptedOrderId));
     }
 
     /**
-     * @param $encryptedOrderId
+     * @param string $encryptedOrderId
      * @return RedirectResponse
      */
-    public function completeOrder($encryptedOrderId)
+    public function completeOrder(string $encryptedOrderId): RedirectResponse
     {
-        $response = $this->orderService->makeOrderComplete($encryptedOrderId);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->makeOrderComplete($encryptedOrderId));
     }
 }
