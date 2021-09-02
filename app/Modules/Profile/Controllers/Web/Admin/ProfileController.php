@@ -50,9 +50,9 @@ class ProfileController extends Controller
 
         return $response['success'] ?
             $response['data']['verified'] ?
-                redirect(route('admin.profile'))->with($response['webResponse']):
-                redirect(route('verifyEmail'))->with($response['webResponse']):
-            redirect()->back()->with($response['webResponse']);
+                redirect(route('admin.profile'))->with($response['message']):
+                redirect(route('verifyEmail'))->with($response['message']):
+            redirect()->back()->with($response['message']);
     }
 
     /**
