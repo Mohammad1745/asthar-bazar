@@ -3,6 +3,7 @@
 
 namespace App\Modules\Product\Services;
 
+use App\Http\Services\ResponseService;
 use App\Modules\Product\Repositories\CategoryRepository;
 use App\Modules\Product\Repositories\DepartmentOwnershipRepository;
 use App\Modules\Product\Repositories\ProductRepository;
@@ -12,10 +13,8 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
-class ProductService
+class ProductService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $departmentOwnershipRepository;
     private $typeRepository;
     private $categoryRepository;
@@ -37,21 +36,13 @@ class ProductService
         $this->categoryRepository = $categoryRepository;
         $this->productRepository = $productRepository;
         $this->productVariationRepository = $productVariationRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
-     * @return mixed
+     * @return array
      */
-    public function tailCategories() {
+    public function tailCategories(): array
+    {
         $where = ['department_ownerships.user_id' => Auth::user()->id];
         $categories = $this->categoryRepository->categories($where)->get();
         $tailCategories = [];
@@ -76,10 +67,10 @@ class ProductService
     }
 
     /**
-     * @param $encryptedProductId
+     * @param string $encryptedProductId
      * @return mixed
      */
-    public function product($encryptedProductId)
+    public function product(string $encryptedProductId)
     {
         $where = ['id' => decrypt($encryptedProductId)];
         $product = $this->productRepository->whereLast($where);
@@ -90,10 +81,10 @@ class ProductService
     }
 
     /**
-     * @param $encryptedProductId
+     * @param string $encryptedProductId
      * @return mixed
      */
-    public function productVariations($encryptedProductId)
+    public function productVariations(string $encryptedProductId)
     {
         $where = ['product_id' => decrypt($encryptedProductId)];
 
@@ -101,10 +92,11 @@ class ProductService
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function store($request) {
+    public function store(object $request): array
+    {
         try{
             $productData = [
                 'title' => $request->title,
@@ -112,23 +104,18 @@ class ProductService
             ];
             $this->productRepository->create($productData);
 
-            return [
-                'success' => true,
-                'message' => __('Product has been added.'),
-                'webResponse' => [
-                    'success' => __('Product has been added.')
-                ],
-            ];
+            return $this->response()->success('Product has been added.');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function update($request) {
+    public function update(object $request): array
+    {
         try{
             $where = ['id' => $request->id];
             $productData = [
@@ -137,68 +124,49 @@ class ProductService
             ];
             $this->productRepository->update($where, $productData);
 
-            return [
-                'success' => true,
-                'message' => __('Product has been updated.'),
-                'webResponse' => [
-                    'success' => __('Product has been updated.')
-                ],
-            ];
+            return $this->response()->success('Product has been updated.');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $encryptedProductId
+     * @param string $encryptedProductId
      * @return array
      */
-    public function delete($encryptedProductId)
+    public function delete(string $encryptedProductId): array
     {
         try{
             $where = ['id' => decrypt($encryptedProductId)];
             $this->productRepository->deleteWhere($where);
 
-            return [
-                'success' => true,
-                'message' => 'Product has been deleted.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Product has been deleted.'
-                ],
-            ];
-        }catch (\Exception $e){
-            return $this->errorResponse;
+            return $this->response()->success('Product has been deleted.');
+        }catch (\Exception $exception){
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function storeVariation($request) {
+    public function storeVariation(object $request): array
+    {
         try{
             $productVariationData = $this->prepareVariationData($request);
             $variation = $this->productVariationRepository->create($productVariationData);
 
-            return [
-                'success' => true,
-                'message' => __('Product Variation added.'),
-                'data' => $variation,
-                'webResponse' => [
-                    'success' => __('Product Variation added.')
-                ],
-            ];
+            return $this->response($variation->toArray())->success('Product Variation added.');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    private function prepareVariationData($request)
+    private function prepareVariationData(object $request): array
     {
         return [
             'product_id' => $request->product_id,
@@ -218,32 +186,27 @@ class ProductService
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function updateVariation($request) {
+    public function updateVariation(object $request): array
+    {
         try{
             $where = ['id' => $request->id];
             $productVariationData = $this->prepareUpdatedVariationData($request);
             $this->productVariationRepository->update($where, $productVariationData);
 
-            return [
-                'success' => true,
-                'message' => __('Product Variation updated.'),
-                'webResponse' => [
-                    'success' => __('Product Variation updated.')
-                ],
-            ];
+            return $this->response()->success('Product Variation updated.');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    private function prepareUpdatedVariationData($request)
+    private function prepareUpdatedVariationData(object $request): array
     {
         $preparedData = [
             'type_id' => $request->type_id,
@@ -268,33 +231,26 @@ class ProductService
     }
 
     /**
-     * @param $encryptedProductVariationId
+     * @param string $encryptedProductVariationId
      * @return array
      */
-    public function deleteVariation($encryptedProductVariationId)
+    public function deleteVariation(string $encryptedProductVariationId): array
     {
         try{
             $where = ['id' => decrypt($encryptedProductVariationId)];
             $this->productVariationRepository->deleteWhere($where);
 
-            return [
-                'success' => true,
-                'message' => 'Product Variation has been deleted.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Product Variation has been deleted.'
-                ],
-            ];
-        }catch (\Exception $e){
-            return $this->errorResponse;
+            return $this->response()->success('Product Variation deleted.');
+        }catch (\Exception $exception){
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $encryptedProductVariationId
+     * @param string $encryptedProductVariationId
      * @return mixed
      */
-    public function productVariationDetails($encryptedProductVariationId)
+    public function productVariationDetails(string $encryptedProductVariationId)
     {
         $where = ['product_variations.id' => decrypt($encryptedProductVariationId)];
 
