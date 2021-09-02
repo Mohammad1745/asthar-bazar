@@ -4,36 +4,26 @@
 namespace App\Modules\Profile\Services;
 
 
+use App\Http\Services\ResponseService;
 use App\Modules\Profile\Repositories\UserRepository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
-class ProfileService
+class ProfileService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $userRepository;
 
     public function __construct(UserRepository $userRepository)
     {
         $this->userRepository = $userRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function updateProfile($request)
+    public function updateProfile(object $request): array
     {
         try{
             DB::beginTransaction();
@@ -47,26 +37,19 @@ class ProfileService
             $this->userRepository->update($where, $profileData);
             DB::commit();
 
-            return [
-                'success' => true,
-                'message' => isset($data['verified']) ? 'Profile Updated.' : 'Profile Updated. Please Verify Your New Email',
-                'data' => $data,
-                'webResponse' => [
-                    'success' => isset($data['verified']) ? 'Profile Updated.' : 'Profile Updated. Please Verify Your New Email',
-                ],
-            ];
+            return $this->response($data)->success(isset($data['verified']) ? 'Profile Updated.' : 'Profile Updated. Please Verify Your New Email');
         }catch (\Exception $exception){
             DB::rollBack();
 
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    private function prepareProfileData($request)
+    private function prepareProfileData(object $request): array
     {
         return [
             'first_name' => $request->first_name,
@@ -82,26 +65,19 @@ class ProfileService
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    public function updatePassword($request)
+    public function updatePassword(object $request): array
     {
         try{
             $where = ['id' => Auth::user()->id];
             $password = ['password' => Hash::make($request->password)];
             $this->userRepository->update($where, $password);
 
-            return [
-                'success' => true,
-                'message' => 'Password Updated.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Password Updated.',
-                ],
-            ];
+            return $this->response()->success('Password Updated');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 }
