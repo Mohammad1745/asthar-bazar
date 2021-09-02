@@ -15,11 +15,17 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    private $profileService;
+    /**
+     * @var ProfileService
+     */
+    private $service;
 
-    public function __construct(ProfileService $profileService)
+    /**
+     * @param ProfileService $service
+     */
+    public function __construct(ProfileService $service)
     {
-        $this->profileService = $profileService;
+        $this->service = $service;
     }
 
     /**
@@ -40,7 +46,7 @@ class ProfileController extends Controller
      */
     public function update(UpdateProfileRequestRequest $request)
     {
-        $response = $this->profileService->updateProfile($request);
+        $response = $this->service->updateProfile($request);
 
         return $response['success'] ?
             $response['data']['verified'] ?
@@ -51,13 +57,10 @@ class ProfileController extends Controller
 
     /**
      * @param UpdatePasswordRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function updatePassword(UpdatePasswordRequest $request)
+    public function updatePassword(UpdatePasswordRequest $request): RedirectResponse
     {
-        $response = $this->profileService->updatePassword($request);
-
-        return redirect(route('admin.profile'))->with($response['webResponse']);
-
+        return $this->webResponse( $this->service->updatePassword($request), 'admin.profile');
     }
 }

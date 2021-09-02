@@ -15,11 +15,17 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    private $profileService;
+    /**
+     * @var ProfileService
+     */
+    private $service;
 
-    public function __construct(ProfileService $profileService)
+    /**
+     * @param ProfileService $service
+     */
+    public function __construct(ProfileService $service)
     {
-        $this->profileService = $profileService;
+        $this->service = $service;
     }
 
     /**
@@ -40,24 +46,21 @@ class ProfileController extends Controller
      */
     public function update(UpdateProfileRequestRequest $request)
     {
-        $response = $this->profileService->updateProfile($request);
+        $response = $this->service->updateProfile($request);
 
         return $response['success'] ?
             $response['data']['verified'] ?
-                redirect(route('profile'))->with($response['webResponse']):
-                redirect(route('verifyEmail'))->with($response['webResponse']):
-            redirect()->back()->with($response['webResponse']);
+                redirect(route('profile'))->with($response['message']):
+                redirect(route('verifyEmail'))->with($response['message']):
+            redirect()->back()->with($response['message']);
     }
 
     /**
      * @param UpdatePasswordRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function updatePassword(UpdatePasswordRequest $request)
+    public function updatePassword(UpdatePasswordRequest $request): RedirectResponse
     {
-        $response = $this->profileService->updatePassword($request);
-
-        return redirect(route('profile'))->with($response['webResponse']);
-
+        return $this->webResponse($this->service->updatePassword($request), 'profile');
     }
 }
