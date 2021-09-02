@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 Route::get('product', "ProductController@product")->name('admin.product');
 //Products
 Route::get('product/list', "ProductController@productList")->name('admin.product.list');
