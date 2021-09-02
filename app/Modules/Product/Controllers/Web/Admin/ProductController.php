@@ -111,8 +111,8 @@ class ProductController extends Controller
         $response = $this->service->storeVariation($request);
 
         return $response['success'] ?
-            redirect(route('admin.product.details', encrypt($response['data']['product_id'])))->with($response['webResponse']) :
-            redirect()->back()->with($response['webResponse']);
+            redirect(route('admin.product.details', encrypt($response['data']['product_id'])))->with($response['message']) :
+            redirect()->back()->with($response['message']);
     }
 
     /**
