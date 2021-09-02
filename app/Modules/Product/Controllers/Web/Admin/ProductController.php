@@ -17,15 +17,15 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    private $productService;
+    private $service;
 
     /**
      * ProductController constructor.
-     * @param ProductService $productService
+     * @param ProductService $service
      */
-    public function __construct(ProductService $productService)
+    public function __construct(ProductService $service)
     {
-        $this->productService = $productService;
+        $this->service = $service;
     }
 
     /**
@@ -36,7 +36,7 @@ class ProductController extends Controller
         $data['base'] = 'department';
         $data['menu'] = 'product';
         $data['user'] = Auth::user();
-        $data['categories'] = $this->productService->tailCategories();
+        $data['categories'] = $this->service->tailCategories();
 
         return view('admin.product.content', $data);
     }
@@ -46,42 +46,34 @@ class ProductController extends Controller
      */
     public function productList()
     {
-        return $this->productService->productListQuery();
+        return $this->service->productListQuery();
     }
 
     /**
      * @param StoreProductRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function store(StoreProductRequest $request)
+    public function store(StoreProductRequest $request): RedirectResponse
     {
-        $response = $this->productService->store($request);
-
-        return redirect(route('admin.product'))->with($response['webResponse']);
+        return $this->webResponse( $this->service->store($request), 'admin.product');
     }
 
     /**
      * @param UpdateProductRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function update(UpdateProductRequest $request)
+    public function update(UpdateProductRequest $request): RedirectResponse
     {
-        $response = $this->productService->update($request);
-
-        return redirect(route('admin.product'))->with($response['webResponse']);
+        return $this->webResponse( $this->service->update($request), 'admin.product');
     }
 
     /**
-     * @param $encryptedProductId
-     * @return Application|RedirectResponse|Redirector
+     * @param string $encryptedProductId
+     * @return RedirectResponse
      */
-    public function delete($encryptedProductId)
+    public function delete(string $encryptedProductId): RedirectResponse
     {
-        $response = $this->productService->delete($encryptedProductId);
-
-        return $response['success'] ?
-            redirect(route('admin.product'))->with($response['webResponse']):
-            redirect()->back()->with($response['webResponse']);
+        return $this->webResponse( $this->service->delete($encryptedProductId), 'admin.product');
     }
 
     /**
@@ -93,10 +85,10 @@ class ProductController extends Controller
         $data['base'] = 'department';
         $data['menu'] = 'product';
         $data['user'] = Auth::user();
-        $data['product'] = $this->productService->product($encryptedProductId);
-        $data['productVariations'] = $this->productService->productVariations($encryptedProductId);
-        $data['categories'] = $this->productService->tailCategories();
-        $data['types'] = $this->productService->types();
+        $data['product'] = $this->service->product($encryptedProductId);
+        $data['productVariations'] = $this->service->productVariations($encryptedProductId);
+        $data['categories'] = $this->service->tailCategories();
+        $data['types'] = $this->service->types();
 
         return view('admin.product.details', $data);
     }
@@ -107,7 +99,7 @@ class ProductController extends Controller
      */
     public function productVariationList($encryptedProductId)
     {
-        return $this->productService->productVariationListQuery($encryptedProductId);
+        return $this->service->productVariationListQuery($encryptedProductId);
     }
 
     /**
@@ -116,7 +108,7 @@ class ProductController extends Controller
      */
     public function storeVariation(StoreProductVariationRequest $request)
     {
-        $response = $this->productService->storeVariation($request);
+        $response = $this->service->storeVariation($request);
 
         return $response['success'] ?
             redirect(route('admin.product.details', encrypt($response['data']['product_id'])))->with($response['webResponse']) :
@@ -127,24 +119,18 @@ class ProductController extends Controller
      * @param UpdateProductVariationRequest $request
      * @return RedirectResponse
      */
-    public function updateVariation(UpdateProductVariationRequest $request)
+    public function updateVariation(UpdateProductVariationRequest $request): RedirectResponse
     {
-        $response = $this->productService->updateVariation($request);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse( $this->service->updateVariation($request));
     }
 
     /**
-     * @param $encryptedProductVariationId
-     * @return Application|RedirectResponse|Redirector
+     * @param string $encryptedProductVariationId
+     * @return RedirectResponse
      */
-    public function deleteVariation($encryptedProductVariationId)
+    public function deleteVariation(string $encryptedProductVariationId): RedirectResponse
     {
-        $response = $this->productService->deleteVariation($encryptedProductVariationId);
-
-        return $response['success'] ?
-            redirect(route('admin.product'))->with($response['webResponse']):
-            redirect()->back()->with($response['webResponse']);
+        return $this->webResponse( $this->service->deleteVariation($encryptedProductVariationId), 'admin.product');
     }
 
     /**
@@ -156,8 +142,8 @@ class ProductController extends Controller
         $data['base'] = 'department';
         $data['menu'] = 'product';
         $data['user'] = Auth::user();
-        $data['types'] = $this->productService->types();
-        $data['productVariation'] = $this->productService->productVariationDetails($encryptedProductVariationId);
+        $data['types'] = $this->service->types();
+        $data['productVariation'] = $this->service->productVariationDetails($encryptedProductVariationId);
 
         return view('admin.product.variation', $data);
     }
