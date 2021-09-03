@@ -4,16 +4,15 @@
 namespace App\Modules\Type\Services;
 
 
+use App\Http\Services\ResponseService;
 use App\Modules\Type\Repositories\TypeRepository;
 use App\Modules\Type\Repositories\DepartmentOwnershipRepository;
 use App\Modules\Type\Repositories\ProductVariationRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
-class TypeService
+class TypeService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $departmentOwnershipRepository;
     private $typeRepository;
     private $productVariationRepository;
@@ -29,22 +28,13 @@ class TypeService
         $this->departmentOwnershipRepository = $departmentOwnershipRepository;
         $this->typeRepository = $typeRepository;
         $this->productVariationRepository = $productVariationRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
-     * @param $encryptedTypeId
+     * @param string $encryptedTypeId
      * @return mixed
      */
-    public function details($encryptedTypeId)
+    public function details(string $encryptedTypeId)
     {
         $where = ['id' => decrypt($encryptedTypeId)];
 
@@ -52,34 +42,29 @@ class TypeService
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function store($request) {
+    public function store(object $request): array
+    {
         try{
             $where = ['user_id' => Auth::user()->id];
             $departmentOwnership = $this->departmentOwnershipRepository->whereLast($where);
             $typeData = $this->prepareTypeData($departmentOwnership->department_id, $request);
             $this->typeRepository->create($typeData);
 
-            return [
-                'success' => true,
-                'message' => __('Type has been added.'),
-                'webResponse' => [
-                    'success' => __('Type has been added.')
-                ],
-            ];
+            return $this->response()->success('Type has been added');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $departmentId
-     * @param $request
+     * @param int $departmentId
+     * @param object $request
      * @return array
      */
-    private function prepareTypeData($departmentId, $request)
+    private function prepareTypeData(int $departmentId, object $request): array
     {
         return [
             'title' => $request->title,
@@ -89,10 +74,11 @@ class TypeService
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function update($request) {
+    public function update(object $request): array
+    {
         try{
             $where = ['user_id' => Auth::user()->id];
             $departmentOwnership = $this->departmentOwnershipRepository->whereLast($where);
@@ -100,24 +86,18 @@ class TypeService
             $typeData = $this->prepareUpdatedTypeData($departmentOwnership->department_id, $request);
             $this->typeRepository->update($where, $typeData);
 
-            return [
-                'success' => true,
-                'message' => __('Type has been updated.'),
-                'webResponse' => [
-                    'success' => __('Type has been updated.')
-                ],
-            ];
+            return $this->response()->success('Type has been updated');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $departmentId
-     * @param $request
+     * @param int $departmentId
+     * @param object $request
      * @return array
      */
-    private function prepareUpdatedTypeData($departmentId, $request)
+    private function prepareUpdatedTypeData(int $departmentId, object $request): array
     {
         return [
             'title' => $request->title,
@@ -127,25 +107,18 @@ class TypeService
     }
 
     /**
-     * @param $encryptedTypeId
+     * @param string $encryptedTypeId
      * @return array
      */
-    public function delete($encryptedTypeId)
+    public function delete(string $encryptedTypeId): array
     {
         try{
             $where = ['id' => decrypt($encryptedTypeId)];
             $this->typeRepository->deleteWhere($where);
 
-            return [
-                'success' => true,
-                'message' => 'Type has been deleted.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'Type has been deleted.'
-                ],
-            ];
-        }catch (\Exception $e){
-            return $this->errorResponse;
+            return $this->response()->success('Type has been deleted');
+        }catch (\Exception $exception){
+            return $this->response()->error($exception->getMessage());
         }
     }
 
