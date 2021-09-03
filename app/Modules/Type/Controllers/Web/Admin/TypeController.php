@@ -15,11 +15,17 @@ use Illuminate\View\View;
 
 class TypeController extends Controller
 {
-    private $typeService;
+    /**
+     * @var TypeService
+     */
+    private $service;
 
-    public function __construct(TypeService $typeService)
+    /**
+     * @param TypeService $service
+     */
+    public function __construct(TypeService $service)
     {
-        $this->typeService = $typeService;
+        $this->service = $service;
     }
 
     /**
@@ -39,7 +45,7 @@ class TypeController extends Controller
      */
     public function typeList()
     {
-        return $this->typeService->typeListQuery();
+        return $this->service->typeListQuery();
     }
 
     /**
@@ -51,43 +57,35 @@ class TypeController extends Controller
         $data['base'] = 'department';
         $data['menu'] = 'type';
         $data['user'] = Auth::user();
-        $data['type'] = $this->typeService->details($encryptedTypeId);
+        $data['type'] = $this->service->details($encryptedTypeId);
 
         return view('admin.type.details', $data);
     }
 
     /**
      * @param StoreTypeRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function store(StoreTypeRequest $request)
+    public function store(StoreTypeRequest $request): RedirectResponse
     {
-        $response = $this->typeService->store($request);
-
-        return redirect(route('admin.type'))->with($response['webResponse']);
+        return $this->webResponse( $this->service->store($request), 'admin.type');
     }
 
     /**
      * @param UpdateTypeRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function update(UpdateTypeRequest $request)
+    public function update(UpdateTypeRequest $request): RedirectResponse
     {
-        $response = $this->typeService->update($request);
-
-        return redirect(route('admin.type'))->with($response['webResponse']);
+        return $this->webResponse( $this->service->update($request), 'admin.type');
     }
 
     /**
-     * @param $encryptedTypeId
-     * @return Application|RedirectResponse|Redirector
+     * @param string $encryptedTypeId
+     * @return RedirectResponse
      */
-    public function delete($encryptedTypeId)
+    public function delete(string $encryptedTypeId): RedirectResponse
     {
-        $response = $this->typeService->delete($encryptedTypeId);
-
-        return $response['success'] ?
-            redirect(route('admin.type'))->with($response['webResponse']):
-            redirect()->back()->with($response['webResponse']);
+        return $this->webResponse( $this->service->delete( $encryptedTypeId), 'admin.type');
     }
 }
