@@ -15,11 +15,17 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    private $userService;
+    /**
+     * @var UserService
+     */
+    private $service;
 
-    public function __construct(UserService $userService)
+    /**
+     * @param UserService $service
+     */
+    public function __construct(UserService $service)
     {
-        $this->userService = $userService;
+        $this->service = $service;
     }
 
     /**
@@ -39,7 +45,7 @@ class UserController extends Controller
      */
     public function userList()
     {
-        return $this->userService->userListQuery();
+        return $this->service->userListQuery();
     }
 
     /**
@@ -51,52 +57,44 @@ class UserController extends Controller
         $data['base'] = 'dashboard';
         $data['menu'] = 'user';
         $data['user'] = Auth::user();
-        $data['userDetail'] = $this->userService->details($encryptedUserId);
+        $data['userDetail'] = $this->service->details($encryptedUserId);
 
         return view('super_admin.user.details', $data);
     }
 
     /**
      * @param StoreUserRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function store(StoreUserRequest $request)
+    public function store(StoreUserRequest $request): RedirectResponse
     {
-        $response = $this->userService->store($request);
-
-        return redirect(route('superAdmin.user'))->with($response['webResponse']);
+        return $this->webResponse($this->service->store($request), 'superAdmin.user');
     }
 
     /**
      * @param UpdateUserRequest $request
-     * @return Application|RedirectResponse|Redirector
+     * @return RedirectResponse
      */
-    public function update(UpdateUserRequest $request)
+    public function update(UpdateUserRequest $request): RedirectResponse
     {
-        $response = $this->userService->update($request);
-
-        return redirect(route('superAdmin.user'))->with($response['webResponse']);
+        return $this->webResponse($this->service->update($request), 'superAdmin.user');
     }
 
     /**
-     * @param $encryptedUserId
-     * @return Application|RedirectResponse|Redirector
+     * @param string $encryptedUserId
+     * @return RedirectResponse
      */
-    public function delete($encryptedUserId)
+    public function delete(string $encryptedUserId): RedirectResponse
     {
-        $response = $this->userService->delete($encryptedUserId);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->delete($encryptedUserId));
     }
 
     /**
-     * @param $encryptedUserId
-     * @return Application|RedirectResponse|Redirector
+     * @param string $encryptedUserId
+     * @return RedirectResponse
      */
-    public function restore($encryptedUserId)
+    public function restore(string $encryptedUserId): RedirectResponse
     {
-        $response = $this->userService->restore($encryptedUserId);
-
-        return redirect()->back()->with($response['webResponse']);
+        return $this->webResponse($this->service->restore($encryptedUserId));
     }
 }
