@@ -4,15 +4,14 @@
 namespace App\Modules\User\Services;
 
 
+use App\Http\Services\ResponseService;
 use App\Modules\User\Repositories\UserRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-class UserService
+class UserService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $userRepository;
 
     /**
@@ -22,22 +21,13 @@ class UserService
     public function __construct(UserRepository $userRepository)
     {
         $this->userRepository = $userRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
-     * @param $encryptedUserId
+     * @param string $encryptedUserId
      * @return mixed
      */
-    public function details($encryptedUserId)
+    public function details(string $encryptedUserId)
     {
         $where = ['users.id' => decrypt($encryptedUserId)];
 
@@ -45,31 +35,26 @@ class UserService
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @param object $request
+     * @return array
      */
-    public function store($request) {
+    public function store(object $request): array
+    {
         try{
             $userData = $this->prepareUserData($request);
             $this->userRepository->create($userData);
 
-            return [
-                'success' => true,
-                'message' => __('User has been added.'),
-                'webResponse' => [
-                    'success' => __('User has been added.')
-                ],
-            ];
+            return $this->response()->success('User has been added');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    private function prepareUserData($request)
+    private function prepareUserData(object $request): array
     {
         return [
             'first_name' => $request->first_name,
@@ -90,32 +75,26 @@ class UserService
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return mixed
      */
-    public function update($request) {
+    public function update(object $request) {
         try{
             $where = ['id' => $request->id];
             $userData = $this->prepareUpdatedUserData($request);
             $this->userRepository->update($where, $userData);
 
-            return [
-                'success' => true,
-                'message' => __('User has been updated.'),
-                'webResponse' => [
-                    'success' => __('User has been updated.')
-                ],
-            ];
+            return $this->response()->success('User has been updated');
         }catch (\Exception $exception){
-            return $this->errorResponse;
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $request
+     * @param object $request
      * @return array
      */
-    private function prepareUpdatedUserData($request)
+    private function prepareUpdatedUserData(object $request): array
     {
         $preparedData = [
             'first_name' => $request->first_name,
@@ -137,50 +116,36 @@ class UserService
     }
 
     /**
-     * @param $encryptedUserId
+     * @param string $encryptedUserId
      * @return array
      */
-    public function delete($encryptedUserId)
+    public function delete(string $encryptedUserId): array
     {
         try{
             $where = ['id' => decrypt($encryptedUserId)];
             $data = ['verification_status' => USER_DELETE_STATUS];
             $this->userRepository->update($where, $data);
 
-            return [
-                'success' => true,
-                'message' => 'User has been deleted.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'User has been deleted.'
-                ],
-            ];
-        }catch (\Exception $e){
-            return $this->errorResponse;
+            return $this->response()->success('User has been deleted');
+        }catch (\Exception $exception){
+            return $this->response()->error($exception->getMessage());
         }
     }
 
     /**
-     * @param $encryptedUserId
+     * @param string $encryptedUserId
      * @return array
      */
-    public function restore($encryptedUserId)
+    public function restore(string $encryptedUserId): array
     {
         try{
             $where = ['id' => decrypt($encryptedUserId)];
             $data = ['verification_status' => USER_ACTIVE_STATUS];
             $this->userRepository->update($where, $data);
 
-            return [
-                'success' => true,
-                'message' => 'User has been restored.',
-                'data' => [],
-                'webResponse' => [
-                    'success' => 'User has been restored.'
-                ],
-            ];
-        }catch (\Exception $e){
-            return $this->errorResponse;
+            return $this->response()->success('User has been restored.');
+        }catch (\Exception $exception){
+            return $this->response()->error($exception->getMessage());
         }
     }
 
