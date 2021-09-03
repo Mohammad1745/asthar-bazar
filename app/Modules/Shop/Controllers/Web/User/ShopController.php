@@ -11,11 +11,11 @@ use Illuminate\View\View;
 
 class ShopController extends Controller
 {
-    private $shopService;
+    private $service;
 
-    public function __construct(ShopService $shopService)
+    public function __construct(ShopService $service)
     {
-        $this->shopService = $shopService;
+        $this->service = $service;
     }
 
     /**
@@ -26,9 +26,9 @@ class ShopController extends Controller
         $data['base'] = 'home';
         $data['menu'] = 'shop';
         $data['user'] = Auth::user();
-        $data['departments'] = $this->shopService->departments();
-        $data['upcomingDepartments'] = $this->shopService->upcomingDepartments();
-        $data['productVariations'] = $this->shopService->randomProductVariations();
+        $data['departments'] = $this->service->departments();
+        $data['upcomingDepartments'] = $this->service->upcomingDepartments();
+        $data['productVariations'] = $this->service->randomProductVariations();
 
         return view('user.shop.content', $data);
     }
@@ -44,14 +44,14 @@ class ShopController extends Controller
         $data['base'] = 'home';
         $data['menu'] = 'shop';
         $data['user'] = Auth::user();
-        $data['currentDepartment'] = $this->shopService->currentDepartment($encryptedDepartmentId);
-        $data['currentCategory'] = $this->shopService->currentCategory($encryptedCategoryId);
-        $data['currentType'] = $this->shopService->currentType($encryptedTypeId);
-        $data['departments'] = $this->shopService->departments();
-        $data['upcomingDepartments'] = $this->shopService->upcomingDepartments();
-        $data['types'] = $this->shopService->types($encryptedDepartmentId);
-        $data['categories'] = $this->shopService->categories($encryptedDepartmentId);
-        $data['productVariations'] = $this->shopService->departmentProductVariations($encryptedDepartmentId, $encryptedCategoryId, $encryptedTypeId);
+        $data['currentDepartment'] = $this->service->currentDepartment($encryptedDepartmentId);
+        $data['currentCategory'] = $this->service->currentCategory($encryptedCategoryId);
+        $data['currentType'] = $this->service->currentType($encryptedTypeId);
+        $data['departments'] = $this->service->departments();
+        $data['upcomingDepartments'] = $this->service->upcomingDepartments();
+        $data['types'] = $this->service->types($encryptedDepartmentId);
+        $data['categories'] = $this->service->categories($encryptedDepartmentId);
+        $data['productVariations'] = $this->service->departmentProductVariations($encryptedDepartmentId, $encryptedCategoryId, $encryptedTypeId);
 
         return view('user.shop.content', $data);
     }
@@ -65,11 +65,11 @@ class ShopController extends Controller
         $data['base'] = 'home';
         $data['menu'] = 'shop';
         $data['user'] = Auth::user();
-        $data['productVariation'] = $this->shopService->productVariation($encryptedProductVariationId);
-        $data['type'] = $this->shopService->type($encryptedProductVariationId);
-        $data['product'] = $this->shopService->product($encryptedProductVariationId);
-        $data['category'] = $this->shopService->category($encryptedProductVariationId);
-        $data['department'] = $this->shopService->department($encryptedProductVariationId);
+        $data['productVariation'] = $this->service->productVariation($encryptedProductVariationId);
+        $data['type'] = $this->service->type($encryptedProductVariationId);
+        $data['product'] = $this->service->product($encryptedProductVariationId);
+        $data['category'] = $this->service->category($encryptedProductVariationId);
+        $data['department'] = $this->service->department($encryptedProductVariationId);
 
         return view('user.shop.product', $data);
     }
