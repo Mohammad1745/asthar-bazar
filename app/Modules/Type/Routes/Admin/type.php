@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 Route::get('type', "TypeController@type")->name('admin.type');
 Route::get('type/list', "TypeController@typeList")->name('admin.type.list');
 Route::post('type/store', "TypeController@store")->name('admin.type.store');
