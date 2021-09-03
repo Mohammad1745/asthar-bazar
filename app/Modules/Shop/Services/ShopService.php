@@ -4,6 +4,7 @@
 namespace App\Modules\Shop\Services;
 
 
+use App\Http\Services\ResponseService;
 use App\Modules\Shop\Repositories\CategoryRepository;
 use App\Modules\Shop\Repositories\CollectionItemRepository;
 use App\Modules\Shop\Repositories\DepartmentRepository;
@@ -11,10 +12,8 @@ use App\Modules\Shop\Repositories\ProductRepository;
 use App\Modules\Shop\Repositories\ProductVariationRepository;
 use App\Modules\Shop\Repositories\TypeRepository;
 
-class ShopService
+class ShopService extends ResponseService
 {
-    private $errorMessage;
-    private $errorResponse;
     private $departmentRepository;
     private $collectionItemRepository;
     private $typeRepository;
@@ -46,15 +45,6 @@ class ShopService
         $this->categoryRepository = $categoryRepository;
         $this->productRepository = $productRepository;
         $this->productVariationRepository = $productVariationRepository;
-        $this->errorMessage = __('Something went wrong');
-        $this->errorResponse = [
-            'success' => false,
-            'message' => $this->errorMessage,
-            'data' => [],
-            'webResponse' => [
-                'dismiss' => $this->errorMessage,
-            ],
-        ];
     }
 
     /**
