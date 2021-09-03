@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 Route::get('user', "UserController@user")->name('superAdmin.user');
 Route::get('user/list', "UserController@userList")->name('superAdmin.user.list');
 Route::post('user/store', "UserController@store")->name('superAdmin.user.store');
